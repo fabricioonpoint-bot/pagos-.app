@@ -1,0 +1,2367 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel personal de pagos</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f1212;
+      --panel: #181d1e;
+      --panel-soft: #202728;
+      --field: #111516;
+      --text: #f3f6f3;
+      --muted: #a8b3ad;
+      --line: #313b3d;
+      --green: #66dfa3;
+      --blue: #78c7ff;
+      --gold: #f4c95d;
+      --red: #ff7f7f;
+      --shadow: 0 22px 70px rgba(0, 0, 0, .3);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(102, 223, 163, .07), transparent 34%),
+        linear-gradient(315deg, rgba(120, 199, 255, .08), transparent 40%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    button, input, select { font: inherit; }
+
+    .app {
+      width: min(1220px, calc(100vw - 36px));
+      margin: 0 auto;
+      padding: 28px 0 38px;
+    }
+
+    .app-hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      padding: 22px;
+      background:
+        linear-gradient(120deg, rgba(102, 223, 163, .16), transparent 42%),
+        linear-gradient(315deg, rgba(120, 199, 255, .14), transparent 42%),
+        #151b1c;
+      box-shadow: var(--shadow);
+    }
+
+    .app-hero::before {
+      content: "S/ 3.75  12 cuotas  15 del mes  +672.72  USD/PEN  2026  710.00  S/ 0.00";
+      position: absolute;
+      inset: -18px -24px auto auto;
+      width: 680px;
+      color: rgba(255, 255, 255, .055);
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.25;
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+
+    .app-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .045) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(90deg, transparent, #000 35%, #000 80%, transparent);
+      pointer-events: none;
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 54px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .date {
+      color: var(--muted);
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    .hero-stats {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .hero-stats .panel {
+      box-shadow: none;
+      background: rgba(15, 18, 18, .58);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .hero-tags span {
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: var(--muted);
+      background: rgba(15, 18, 18, .45);
+      font-size: 12px;
+    }
+
+    .actions, .row-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button, .file-button {
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 12px;
+      cursor: pointer;
+      min-height: 40px;
+    }
+
+    button.primary {
+      border-color: rgba(102, 223, 163, .45);
+      background: #224033;
+    }
+
+    button.paid {
+      border-color: rgba(102, 223, 163, .55);
+      background: rgba(102, 223, 163, .14);
+      color: var(--green);
+    }
+
+    button.danger {
+      border-color: rgba(255, 127, 127, .35);
+      background: rgba(255, 127, 127, .1);
+      color: var(--red);
+    }
+
+    .auth-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 30px 18px;
+    }
+
+    .auth-shell {
+      width: min(980px, 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .auth-intro {
+      display: grid;
+      align-content: center;
+      gap: 16px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 8px;
+      background: rgba(24, 29, 30, .88);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-intro h1 {
+      font-size: clamp(34px, 5vw, 64px);
+    }
+
+    .auth-panel {
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 8px;
+      background: rgba(24, 29, 30, .95);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .auth-tabs button.active {
+      border-color: rgba(102, 223, 163, .55);
+      background: #224033;
+    }
+
+    .auth-form {
+      display: none;
+      gap: 12px;
+    }
+
+    .auth-form.active {
+      display: grid;
+    }
+
+    .auth-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin-top: 12px;
+    }
+
+    .account-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(32, 39, 40, .68);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .form-hidden {
+      display: none !important;
+    }
+
+    .file-button input { display: none; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .panel {
+      background: rgba(24, 29, 30, .94);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-5 { grid-column: span 5; }
+    .span-7 { grid-column: span 7; }
+    .span-12 { grid-column: span 12; }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .metric {
+      font-size: clamp(24px, 3.2vw, 42px);
+      font-weight: 760;
+      line-height: 1;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .section-heading {
+      display: grid;
+      gap: 4px;
+    }
+
+    .section-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(105px, 1fr));
+      gap: 10px;
+      min-width: min(680px, 100%);
+    }
+
+    .section-kpi {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(32, 39, 40, .72);
+      padding: 10px 12px;
+      text-align: right;
+    }
+
+    .section-kpi .label {
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .section-kpi strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .compact-form {
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 680;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--field);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 12px 13px;
+      outline: none;
+      min-height: 48px;
+      font-size: 16px;
+    }
+
+    .compact-form input {
+      min-height: 42px;
+      padding: 9px 11px;
+      font-size: 15px;
+    }
+
+    .compact-form button {
+      min-height: 42px;
+    }
+
+    input:focus, select:focus { border-color: rgba(120, 199, 255, .7); }
+
+    .form button {
+      grid-column: 1 / -1;
+      min-height: 48px;
+      align-self: end;
+    }
+
+    .wide { grid-column: 1 / -1; }
+
+    .list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .payment-row {
+      display: grid;
+      grid-template-columns: minmax(130px, 1.4fr) minmax(78px, .75fr) minmax(70px, .65fr) minmax(70px, .65fr) minmax(72px, .7fr) minmax(78px, .75fr) minmax(72px, auto);
+      gap: 8px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: rgba(32, 39, 40, .78);
+      border-radius: 8px;
+    }
+
+    .card-row {
+      grid-template-columns: minmax(150px, 1.35fr) .75fr .8fr 1fr auto;
+    }
+
+    .name {
+      font-weight: 720;
+      overflow-wrap: anywhere;
+    }
+
+    .amount {
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .loan-total {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-size: 14px;
+    }
+
+    .loan-total strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.1;
+    }
+
+    .bar {
+      height: 10px;
+      background: #101516;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.07);
+      margin-top: 8px;
+    }
+
+    .bar > div {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      width: 0%;
+    }
+
+    .due {
+      color: var(--gold);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .danger-text { color: var(--red); }
+    .ok { color: var(--green); }
+    .blue { color: var(--blue); }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .pay-box {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pay-box .secondary {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .pay-box input {
+      min-height: 40px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    .month-fields {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .mini-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .payment-row .row-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      justify-content: stretch;
+    }
+
+    .row-actions button {
+      min-height: 36px;
+      padding: 8px 10px;
+    }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .data-box {
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .data-box code {
+      color: var(--text);
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 2px 5px;
+    }
+
+    .loan-analytics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(32, 39, 40, .62);
+    }
+
+    .analysis-item {
+      min-width: 0;
+    }
+
+    .analysis-value {
+      margin-top: 3px;
+      font-size: 18px;
+      font-weight: 760;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+
+    .edit-banner {
+      display: none;
+      margin: 0 0 12px;
+      padding: 12px;
+      border: 1px solid rgba(102, 223, 163, .45);
+      border-radius: 8px;
+      background: rgba(102, 223, 163, .12);
+    }
+
+    .edit-banner.active {
+      display: block;
+    }
+
+    .edit-banner strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--green);
+    }
+
+    .history-table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-row {
+      display: grid;
+      grid-template-columns: .9fr 1.2fr .8fr .8fr auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: rgba(32, 39, 40, .64);
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 960px) {
+      .span-3, .span-5, .span-7 { grid-column: span 12; }
+      header { align-items: flex-start; flex-direction: column; }
+      .actions { justify-content: flex-start; }
+      .hero-stats { grid-template-columns: 1fr; }
+      .form, .payment-row, .card-row, .history-row {
+        grid-template-columns: 1fr;
+      }
+      .loan-analytics {
+        grid-template-columns: 1fr;
+      }
+      .section-title { align-items: stretch; flex-direction: column; }
+      .section-kpis { min-width: 0; }
+      .auth-shell { grid-template-columns: 1fr; }
+      .amount, .due, .loan-total, .section-kpi { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <section class="auth-screen hidden" id="authScreen">
+    <div class="auth-shell">
+      <div class="auth-intro">
+        <div>
+          <h1>Pagos App</h1>
+          <div class="date">Prototipo multiusuario para tarjetas, cuotas e historial.</div>
+        </div>
+        <div class="data-box">
+          <div>Cada persona crea su usuario y ve solo sus tarjetas, préstamos, pagos y respaldos.</div>
+          <div id="storageDescription">Preparando el almacenamiento de tus datos.</div>
+        </div>
+      </div>
+      <div class="auth-panel">
+        <div class="auth-tabs">
+          <button class="active" id="showLogin" type="button">Iniciar sesión</button>
+          <button id="showSignup" type="button">Crear usuario</button>
+        </div>
+
+        <form class="auth-form active" id="loginForm">
+          <div class="field">
+            <label for="loginEmail">Correo</label>
+            <input id="loginEmail" type="email" placeholder="tu@correo.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="loginPassword">Clave</label>
+            <input id="loginPassword" type="password" placeholder="Clave de demo" autocomplete="current-password" />
+          </div>
+          <button class="primary" type="submit">Entrar</button>
+        </form>
+
+        <form class="auth-form" id="signupForm">
+          <div class="field">
+            <label for="signupName">Nombre</label>
+            <input id="signupName" placeholder="Nombre de usuario" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label for="signupEmail">Correo</label>
+            <input id="signupEmail" type="email" placeholder="tu@correo.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label for="signupPassword">Clave</label>
+            <input id="signupPassword" type="password" placeholder="Mínimo 4 caracteres" autocomplete="new-password" />
+          </div>
+          <button class="primary" type="submit">Crear cuenta</button>
+        </form>
+
+        <div class="auth-note" id="authMessage">Preparando acceso...</div>
+      </div>
+    </div>
+  </section>
+
+  <main class="app hidden" id="appShell">
+    <section class="app-hero">
+      <header>
+        <div>
+          <h1>Panel personal de pagos</h1>
+          <div class="date" id="today"></div>
+          <div class="hero-tags">
+            <span>Tarjetas</span>
+            <span>Cuotas</span>
+            <span>Historial mensual</span>
+            <span>USD/PEN</span>
+          </div>
+        </div>
+        <div class="actions">
+          <div class="account-box">
+            <span id="accountName">Usuario</span>
+            <button id="logout" type="button">Salir</button>
+          </div>
+          <button id="seed">Ejemplo</button>
+          <button id="exportCsv">Exportar CSV</button>
+          <label class="file-button">Importar CSV
+            <input id="importCsv" type="file" accept=".csv,text/csv" />
+          </label>
+          <button id="exportBackup">Respaldo</button>
+          <label class="file-button">Restaurar
+            <input id="importBackup" type="file" accept=".json,application/json" />
+          </label>
+          <button id="reset">Limpiar</button>
+        </div>
+      </header>
+
+      <div class="hero-stats" aria-live="polite">
+        <div class="panel">
+          <div class="label">Tipo de cambio</div>
+          <div class="metric">S/ <span id="rateView">0.00</span></div>
+          <div class="sub" id="rateStatus">Se actualiza al abrir</div>
+          <input id="rateInput" type="number" min="0" step="0.001" placeholder="3.750" />
+        </div>
+
+        <div class="panel">
+          <div class="label">Mes actual</div>
+          <div class="metric" id="monthLabel">-</div>
+          <div class="sub">El panel cambia solo cada mes</div>
+        </div>
+
+        <div class="panel">
+          <div class="label">Saldo a pagar</div>
+          <div class="metric">S/ <span id="monthlyTotal">0.00</span></div>
+          <div class="sub">Restante de tarjetas</div>
+        </div>
+
+        <div class="panel">
+          <div class="label">Pagado este mes</div>
+          <div class="metric ok">S/ <span id="monthlyPaid">0.00</span></div>
+          <div class="sub" id="monthlyPending">Restante S/ 0.00</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" aria-live="polite">
+
+      <div class="panel span-12" id="loanListPanel">
+        <div class="section-title">
+          <div class="section-heading">
+            <h2>Préstamos pasados a cuotas</h2>
+            <div class="tiny">Referencia de compras financiadas</div>
+          </div>
+          <div class="section-kpis">
+            <div class="section-kpi">
+              <div class="label">Total prestado</div>
+              <strong>S/ <span id="loansPrincipalKpi">0.00</span></strong>
+            </div>
+            <div class="section-kpi">
+              <div class="label">Extra total</div>
+              <strong class="danger-text">S/ <span id="loansExtraKpi">0.00</span></strong>
+            </div>
+            <div class="section-kpi">
+              <div class="label">Pago mensual</div>
+              <strong>S/ <span id="loansMonthlyKpi">0.00</span></strong>
+            </div>
+            <div class="section-kpi">
+              <div class="label">Restante total</div>
+              <strong>S/ <span id="loansRemainingKpi">0.00</span></strong>
+            </div>
+          </div>
+          <button id="showLoanForm" type="button">Añadir préstamo</button>
+        </div>
+        <div class="list" id="loans"></div>
+      </div>
+
+      <div class="panel span-5 form-hidden" id="loanEditorPanel">
+        <div class="section-title">
+          <h2 id="loanFormTitle">Agregar préstamo</h2>
+          <button id="cancelLoanEdit" type="button" hidden>Cancelar edición</button>
+        </div>
+        <div class="edit-banner" id="loanEditBanner">
+          <strong>Modo edición</strong>
+          <span id="loanEditName">Estás modificando este préstamo.</span>
+        </div>
+        <form class="form form-hidden" id="loanForm">
+          <div class="field wide">
+            <label for="loanName">Nombre del préstamo</label>
+            <input id="loanName" placeholder="Ej. Lavadora, banco, laptop" autocomplete="off" />
+          </div>
+          <div class="field wide">
+            <label for="loanCard">Tarjeta vinculada</label>
+            <input id="loanCard" list="cardOptions" placeholder="Debe coincidir con una tarjeta del mes" autocomplete="off" />
+            <datalist id="cardOptions"></datalist>
+          </div>
+          <div class="field">
+            <label for="loanPrincipal">Monto del préstamo</label>
+            <input id="loanPrincipal" type="number" min="0" step="0.01" placeholder="S/ 0.00" />
+          </div>
+          <div class="field">
+            <label for="loanPaid">Monto ya pagado</label>
+            <input id="loanPaid" type="number" min="0" step="0.01" placeholder="S/ 0.00" />
+          </div>
+          <div class="field">
+            <label for="loanMonthly">Cuota mensual</label>
+            <input id="loanMonthly" type="number" min="0" step="0.01" placeholder="S/ 0.00" />
+          </div>
+          <div class="field">
+            <label for="loanTerms">Número de cuotas</label>
+            <input id="loanTerms" type="number" min="0" step="1" placeholder="Ej. 12" />
+          </div>
+          <div class="field">
+            <label for="loanDue">Fecha de inicio</label>
+            <input id="loanDue" type="date" />
+          </div>
+          <button class="primary" id="loanSubmit" type="submit">Guardar préstamo</button>
+        </form>
+        <div class="loan-analytics form-hidden" id="loanAnalytics">
+          <div class="analysis-item">
+            <div class="label">Cuotas restantes</div>
+            <div class="analysis-value" id="loanInstallments">0</div>
+          </div>
+          <div class="analysis-item">
+            <div class="label">Total a pagar</div>
+            <div class="analysis-value">S/ <span id="loanTotalProjected">0.00</span></div>
+          </div>
+          <div class="analysis-item">
+            <div class="label">Pagarías de más</div>
+            <div class="analysis-value danger-text">S/ <span id="loanExtraProjected">0.00</span></div>
+          </div>
+          <div class="analysis-item">
+            <div class="label">Primer pago</div>
+            <div class="analysis-value" id="loanPaymentDay">-</div>
+          </div>
+          <div class="analysis-item">
+            <div class="label">Última cuota</div>
+            <div class="analysis-value" id="loanFinalPayment">-</div>
+          </div>
+        </div>
+        <div class="tiny form-hidden" id="loanHelp">Vincula el préstamo con la tarjeta donde está esa compra. Al pagar la tarjeta, se marcará ese mes del préstamo.</div>
+      </div>
+
+      <div class="panel span-12" id="cardListPanel">
+        <div class="section-title">
+          <div class="section-heading">
+            <h2>Tarjetas del mes</h2>
+            <div class="tiny">Monto variable por mes y día fijo por tarjeta</div>
+          </div>
+          <button id="showCardForm" type="button">Añadir tarjeta</button>
+        </div>
+        <div class="list" id="cards"></div>
+      </div>
+
+      <div class="panel span-5 form-hidden" id="cardEditorPanel">
+        <div class="section-title">
+          <h2 id="cardFormTitle">Agregar tarjeta</h2>
+          <button id="cancelCardEdit" type="button" hidden>Cancelar edición</button>
+        </div>
+        <div class="edit-banner" id="cardEditBanner">
+          <strong>Modo edición</strong>
+          <span id="cardEditName">Estás modificando esta tarjeta.</span>
+        </div>
+        <form class="form compact-form form-hidden" id="cardForm">
+          <div class="field wide">
+            <label for="cardName">Nombre de la tarjeta</label>
+            <input id="cardName" placeholder="Ej. Visa BCP, Interbank" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label for="cardMonthly">Monto inicial en soles</label>
+            <input id="cardMonthly" type="number" min="0" step="0.01" placeholder="Para iniciar este mes" />
+          </div>
+          <div class="field">
+            <label for="cardMonthlyUsd">Monto inicial en dólares</label>
+            <input id="cardMonthlyUsd" type="text" inputmode="decimal" placeholder="Ej. 120.50" />
+          </div>
+          <div class="field">
+            <label for="cardDue">Día fijo de pago</label>
+            <input id="cardDue" type="date" />
+          </div>
+          <button class="primary" id="cardSubmit" type="submit">Guardar tarjeta</button>
+        </form>
+        <div class="tiny form-hidden" id="cardHelp">Agrega la tarjeta una vez. En su fila cambias soles y dólares de cada mes.</div>
+      </div>
+
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Historial de pagos</h2>
+          <div class="row-actions">
+            <button id="clearCurrentMonth" type="button">Desmarcar mes actual</button>
+          </div>
+        </div>
+        <div class="history-table" id="history"></div>
+      </div>
+
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Datos y Numbers</h2>
+          <div class="row-actions">
+            <button id="downloadTemplate">Plantilla CSV</button>
+          </div>
+        </div>
+        <div class="data-box">
+          <div>Numbers puede ser tu base principal: editas la tabla, exportas CSV y la importas aquí.</div>
+          <div>Columnas: <code>tipo</code>, <code>nombre</code>, <code>tarjeta_vinculada</code>, <code>monto</code>, <code>pagado</code>, <code>pago_mensual</code>, <code>cuotas</code>, <code>fecha_inicio</code>.</div>
+          <div>En préstamos, <code>tarjeta_vinculada</code> debe coincidir con el nombre de una tarjeta. Al pagar esa tarjeta, sus cuotas vinculadas se reflejan como pagadas.</div>
+        </div>
+      </div>
+
+      <div class="panel span-12">
+        <div class="section-title">
+          <h2>Prototipo de app</h2>
+        </div>
+        <div class="data-box">
+          <div><strong>GitHub Pages:</strong> publica la aplicación para que pueda abrirse desde cualquier computadora.</div>
+          <div id="prototypeStatus"><strong>Datos:</strong> comprobando la conexión con Supabase.</div>
+          <div><strong>Privacidad:</strong> cada cuenta solo puede consultar y modificar su propio panel.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    const storageKey = "panel-pagos-v3";
+    const oldStorageKey = "panel-pagos-v2";
+    const storageKeys = [storageKey, oldStorageKey, "panel-pagos-v1"];
+    const usersKey = "panel-pagos-users-v1";
+    const sessionKey = "panel-pagos-session-v1";
+    const cloudMigrationOwnerKey = "panel-pagos-cloud-migration-owner-v1";
+    const cloudMigrationBackupKey = "panel-pagos-before-cloud-v1";
+    const defaultState = {
+      rate: 3.75,
+      loans: [],
+      cards: [],
+      payments: [],
+      cardFocus: {}
+    };
+
+    const money = new Intl.NumberFormat("es-PE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+
+    const monthFmt = new Intl.DateTimeFormat("es-PE", { month: "long", year: "numeric" });
+    const dateFmt = new Intl.DateTimeFormat("es-PE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+
+    const els = {
+      authScreen: document.querySelector("#authScreen"),
+      appShell: document.querySelector("#appShell"),
+      showLogin: document.querySelector("#showLogin"),
+      showSignup: document.querySelector("#showSignup"),
+      loginForm: document.querySelector("#loginForm"),
+      signupForm: document.querySelector("#signupForm"),
+      loginEmail: document.querySelector("#loginEmail"),
+      loginPassword: document.querySelector("#loginPassword"),
+      signupName: document.querySelector("#signupName"),
+      signupEmail: document.querySelector("#signupEmail"),
+      signupPassword: document.querySelector("#signupPassword"),
+      authMessage: document.querySelector("#authMessage"),
+      storageDescription: document.querySelector("#storageDescription"),
+      prototypeStatus: document.querySelector("#prototypeStatus"),
+      accountName: document.querySelector("#accountName"),
+      logout: document.querySelector("#logout"),
+      today: document.querySelector("#today"),
+      monthLabel: document.querySelector("#monthLabel"),
+      rateView: document.querySelector("#rateView"),
+      rateInput: document.querySelector("#rateInput"),
+      rateStatus: document.querySelector("#rateStatus"),
+      monthlyTotal: document.querySelector("#monthlyTotal"),
+      monthlyPaid: document.querySelector("#monthlyPaid"),
+      monthlyPending: document.querySelector("#monthlyPending"),
+      loansPrincipalKpi: document.querySelector("#loansPrincipalKpi"),
+      loansExtraKpi: document.querySelector("#loansExtraKpi"),
+      loansMonthlyKpi: document.querySelector("#loansMonthlyKpi"),
+      loansRemainingKpi: document.querySelector("#loansRemainingKpi"),
+      loanListPanel: document.querySelector("#loanListPanel"),
+      loanEditorPanel: document.querySelector("#loanEditorPanel"),
+      cardListPanel: document.querySelector("#cardListPanel"),
+      cardEditorPanel: document.querySelector("#cardEditorPanel"),
+      loans: document.querySelector("#loans"),
+      cards: document.querySelector("#cards"),
+      history: document.querySelector("#history"),
+      loanForm: document.querySelector("#loanForm"),
+      loanFormTitle: document.querySelector("#loanFormTitle"),
+      showLoanForm: document.querySelector("#showLoanForm"),
+      loanAnalytics: document.querySelector("#loanAnalytics"),
+      loanHelp: document.querySelector("#loanHelp"),
+      loanEditBanner: document.querySelector("#loanEditBanner"),
+      loanEditName: document.querySelector("#loanEditName"),
+      loanSubmit: document.querySelector("#loanSubmit"),
+      cancelLoanEdit: document.querySelector("#cancelLoanEdit"),
+      loanName: document.querySelector("#loanName"),
+      loanCard: document.querySelector("#loanCard"),
+      cardOptions: document.querySelector("#cardOptions"),
+      loanPrincipal: document.querySelector("#loanPrincipal"),
+      loanPaid: document.querySelector("#loanPaid"),
+      loanMonthly: document.querySelector("#loanMonthly"),
+      loanTerms: document.querySelector("#loanTerms"),
+      loanDue: document.querySelector("#loanDue"),
+      loanInstallments: document.querySelector("#loanInstallments"),
+      loanTotalProjected: document.querySelector("#loanTotalProjected"),
+      loanExtraProjected: document.querySelector("#loanExtraProjected"),
+      loanPaymentDay: document.querySelector("#loanPaymentDay"),
+      loanFinalPayment: document.querySelector("#loanFinalPayment"),
+      cardForm: document.querySelector("#cardForm"),
+      cardFormTitle: document.querySelector("#cardFormTitle"),
+      showCardForm: document.querySelector("#showCardForm"),
+      cardHelp: document.querySelector("#cardHelp"),
+      cardEditBanner: document.querySelector("#cardEditBanner"),
+      cardEditName: document.querySelector("#cardEditName"),
+      cardSubmit: document.querySelector("#cardSubmit"),
+      cancelCardEdit: document.querySelector("#cancelCardEdit"),
+      cardName: document.querySelector("#cardName"),
+      cardMonthly: document.querySelector("#cardMonthly"),
+      cardMonthlyUsd: document.querySelector("#cardMonthlyUsd"),
+      cardDue: document.querySelector("#cardDue"),
+      seed: document.querySelector("#seed"),
+      reset: document.querySelector("#reset"),
+      exportCsv: document.querySelector("#exportCsv"),
+      importCsv: document.querySelector("#importCsv"),
+      exportBackup: document.querySelector("#exportBackup"),
+      importBackup: document.querySelector("#importBackup"),
+      downloadTemplate: document.querySelector("#downloadTemplate"),
+      clearCurrentMonth: document.querySelector("#clearCurrentMonth")
+    };
+
+    const cloudConfig = window.PAGOS_APP_CONFIG || {};
+    const cloudMode = Boolean(
+      window.supabase &&
+      cloudConfig.supabaseUrl &&
+      cloudConfig.supabaseAnonKey &&
+      !cloudConfig.supabaseUrl.includes("TU-PROYECTO") &&
+      !cloudConfig.supabaseAnonKey.includes("TU-CLAVE")
+    );
+    const supabaseClient = cloudMode
+      ? window.supabase.createClient(cloudConfig.supabaseUrl, cloudConfig.supabaseAnonKey)
+      : null;
+
+    let currentUser = cloudMode ? null : readSessionUser();
+    let state = cloudMode ? normalizeState(defaultState) : readState();
+    let editingLoanId = "";
+    let editingCardId = "";
+    let cloudSaveTimer = null;
+
+    function readUsers() {
+      try {
+        return JSON.parse(localStorage.getItem(usersKey)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(usersKey, JSON.stringify(users));
+    }
+
+    function normalizeEmail(email) {
+      return String(email || "").trim().toLowerCase();
+    }
+
+    function userDataKey(user) {
+      return `${storageKey}:user:${normalizeEmail(user.email)}`;
+    }
+
+    function cloudUser(authUser) {
+      if (!authUser) return null;
+      return {
+        id: authUser.id,
+        email: authUser.email || "",
+        name: authUser.user_metadata?.name || authUser.email || "Usuario",
+        createdAt: authUser.created_at
+      };
+    }
+
+    function readSessionUser() {
+      const email = normalizeEmail(localStorage.getItem(sessionKey));
+      if (!email) return null;
+      return readUsers().find(user => normalizeEmail(user.email) === email) || null;
+    }
+
+    function setAuthMode(mode) {
+      const signup = mode === "signup";
+      els.showLogin.classList.toggle("active", !signup);
+      els.showSignup.classList.toggle("active", signup);
+      els.loginForm.classList.toggle("active", !signup);
+      els.signupForm.classList.toggle("active", signup);
+      els.authMessage.textContent = signup
+        ? (cloudMode
+          ? "Crea tu cuenta. Tus datos quedarán guardados de forma privada en la nube."
+          : "Crea una cuenta de demo. Sus datos quedan separados en este navegador.")
+        : (cloudMode
+          ? "Ingresa para abrir tu panel guardado en la nube."
+          : "Ingresa con un usuario creado en este navegador.");
+    }
+
+    function showAuthMessage(message) {
+      els.authMessage.textContent = message;
+    }
+
+    function refreshAuthView() {
+      if (currentUser) {
+        els.authScreen.classList.add("hidden");
+        els.appShell.classList.remove("hidden");
+        els.accountName.textContent = currentUser.name || currentUser.email;
+        render();
+      } else {
+        els.appShell.classList.add("hidden");
+        els.authScreen.classList.remove("hidden");
+      }
+    }
+
+    function readState() {
+      try {
+        if (currentUser) {
+          const saved = localStorage.getItem(userDataKey(currentUser));
+          if (saved) return normalizeState(JSON.parse(saved));
+          return normalizeState(defaultState);
+        }
+        return normalizeState(defaultState);
+      } catch {
+        return normalizeState(defaultState);
+      }
+    }
+
+    async function syncCloudState() {
+      if (!cloudMode || !currentUser?.id) return;
+      const snapshot = JSON.parse(JSON.stringify(state));
+      const { error } = await supabaseClient.from("user_states").upsert({
+        user_id: currentUser.id,
+        data: snapshot,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+      if (error) console.error("No se pudo sincronizar el panel:", error.message);
+    }
+
+    async function loadCloudState() {
+      if (!cloudMode || !currentUser?.id) return;
+      const { data, error } = await supabaseClient
+        .from("user_states")
+        .select("data")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+      if (error) {
+        showAuthMessage(`No se pudo abrir la base de datos: ${error.message}`);
+        state = readState();
+        return;
+      }
+      if (data?.data) {
+        state = normalizeState(data.data);
+        localStorage.setItem(userDataKey(currentUser), JSON.stringify(state));
+        return;
+      }
+      const local = readState();
+      const legacy = readBestLegacyState();
+      const migrationOwner = localStorage.getItem(cloudMigrationOwnerKey);
+      if (stateScore(local)) {
+        state = local;
+      } else if (!migrationOwner && stateScore(legacy)) {
+        localStorage.setItem(cloudMigrationBackupKey, JSON.stringify(legacy));
+        state = legacy;
+        localStorage.setItem(cloudMigrationOwnerKey, currentUser.id);
+      } else {
+        state = normalizeState(defaultState);
+      }
+      await syncCloudState();
+    }
+
+    function readBestLegacyState() {
+      try {
+        const userStatePrefixes = storageKeys.map(key => `${key}:user:`);
+        const savedUserStateKeys = Object.keys(localStorage).filter(key =>
+          userStatePrefixes.some(prefix => key.startsWith(prefix))
+        );
+        const candidateKeys = [...new Set([...storageKeys, ...savedUserStateKeys])];
+        const candidates = candidateKeys
+          .map(key => {
+            const saved = localStorage.getItem(key);
+            if (!saved) return null;
+            try {
+              const normalized = normalizeState(JSON.parse(saved));
+              return { key, state: normalized, score: stateScore(normalized) };
+            } catch {
+              return null;
+            }
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.score - a.score);
+        return candidates[0] ? candidates[0].state : normalizeState(defaultState);
+      } catch {
+        return normalizeState(defaultState);
+      }
+    }
+
+    function stateScore(nextState) {
+      return (nextState.loans?.length || 0) + (nextState.cards?.length || 0) + (nextState.payments?.length || 0);
+    }
+
+    function normalizeState(nextState) {
+      return {
+        rate: toNumber(nextState.rate) || defaultState.rate,
+        loans: Array.isArray(nextState.loans) ? nextState.loans.map((loan, index) => normalizeLoan(loan, index)) : [],
+        cards: Array.isArray(nextState.cards) ? nextState.cards.map((card, index) => normalizeCard(card, index)) : [],
+        payments: Array.isArray(nextState.payments) ? nextState.payments.map(normalizePayment).filter(Boolean) : [],
+        cardFocus: nextState.cardFocus && typeof nextState.cardFocus === "object" ? nextState.cardFocus : {}
+      };
+    }
+
+    function normalizeLoan(loan, index) {
+      const startDate = loan.startDate || loan.due || dateInputFromDay(loan.dueDay || new Date().getDate());
+      return {
+        id: loan.id || makeId("loan", loan.name || index),
+        name: loan.name || "Préstamo",
+        cardName: loan.cardName || loan.card || "",
+        principal: toNumber(loan.principal),
+        paidBase: toNumber(loan.paidBase ?? loan.paid),
+        monthly: toNumber(loan.monthly),
+        terms: Math.max(0, Math.round(toNumber(loan.terms))),
+        startDate,
+        dueDay: clampDay(loan.dueDay || dayFromDate(startDate))
+      };
+    }
+
+    function normalizeCard(card, index) {
+      return {
+        id: card.id || makeId("card", card.name || index),
+        name: card.name || "Tarjeta",
+        monthly: toNumber(card.monthly),
+        monthlyUsd: toNumber(card.monthlyUsd),
+        dueDay: clampDay(card.dueDay || dayFromDate(card.due))
+      };
+    }
+
+    function normalizePayment(payment) {
+      if (!payment || !payment.itemId || !payment.month) return null;
+      const amount = toNumber(payment.amount);
+      const amountUsd = toNumber(payment.amountUsd);
+      const entries = Array.isArray(payment.entries)
+        ? payment.entries.map(entry => ({
+          amount: toNumber(entry.amount),
+          amountUsd: toNumber(entry.amountUsd),
+          paidAt: entry.paidAt || payment.paidAt || new Date().toISOString()
+        })).filter(entry => entry.amount || entry.amountUsd)
+        : [];
+      if (!entries.length && (amount || amountUsd)) {
+        entries.push({
+          amount,
+          amountUsd,
+          paidAt: payment.paidAt || new Date().toISOString()
+        });
+      }
+      return {
+        id: payment.id || makeId("pay", `${payment.itemId}-${payment.month}`),
+        itemId: payment.itemId,
+        kind: payment.kind,
+        name: payment.name,
+        month: payment.month,
+        billAmount: toNumber(payment.billAmount ?? payment.amount),
+        billAmountUsd: toNumber(payment.billAmountUsd),
+        amount,
+        amountUsd,
+        entries,
+        paidAt: payment.paidAt || new Date().toISOString()
+      };
+    }
+
+    function saveState() {
+      if (currentUser) {
+        localStorage.setItem(userDataKey(currentUser), JSON.stringify(state));
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+      if (cloudMode && currentUser?.id) {
+        clearTimeout(cloudSaveTimer);
+        cloudSaveTimer = setTimeout(syncCloudState, 450);
+      }
+    }
+
+    function toNumber(value) {
+      const parsed = Number(String(value ?? "").replace(",", ".").trim());
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function makeId(prefix, value) {
+      const clean = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      return `${prefix}-${clean || Date.now()}-${Math.random().toString(16).slice(2, 7)}`;
+    }
+
+    function dayFromDate(dateText) {
+      if (!dateText) return new Date().getDate();
+      const day = Number(String(dateText).split("-")[2]);
+      return Number.isFinite(day) ? day : new Date().getDate();
+    }
+
+    function clampDay(day) {
+      return Math.max(1, Math.min(31, Number(day) || 1));
+    }
+
+    function currentMonthKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function monthDate(day, monthKey = currentMonthKey()) {
+      const [year, month] = monthKey.split("-").map(Number);
+      const lastDay = new Date(year, month, 0).getDate();
+      return new Date(year, month - 1, Math.min(day, lastDay));
+    }
+
+    function addMonthKey(monthKey, amount) {
+      const [year, month] = monthKey.split("-").map(Number);
+      const date = new Date(year, month - 1 + amount, 1);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function dateToMonthKey(dateText) {
+      const date = dateText ? new Date(`${dateText}T00:00:00`) : new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function monthName(monthKey) {
+      const [year, month] = monthKey.split("-").map(Number);
+      return monthFmt.format(new Date(year, month - 1, 1));
+    }
+
+    function dateInputFromDay(day) {
+      const date = monthDate(day);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function dateInputFromMonthDay(monthKey, day) {
+      const date = monthDate(day, monthKey);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function daysUntilDate(date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(date);
+      due.setHours(0, 0, 0, 0);
+      return Math.ceil((due - today) / 86400000);
+    }
+
+    function paymentDayLabel(day) {
+      const cleanDay = clampDay(day);
+      return {
+        text: `Vence ${cleanDay}`,
+        dateText: "del mes"
+      };
+    }
+
+    function itemPayment(itemId, month = currentMonthKey()) {
+      return state.payments.find(payment => payment.itemId === itemId && payment.month === month);
+    }
+
+    function activeMonthForItem(itemId, item) {
+      let month = currentMonthKey();
+      for (let step = 0; step < 60; step += 1) {
+        const payment = itemPayment(itemId, month);
+        if (!payment || !paymentIsComplete(payment, item ? item.monthly : 0)) return month;
+        month = addMonthKey(month, 1);
+      }
+      return month;
+    }
+
+    function activeCardMonth(card) {
+      const focused = state.cardFocus[card.id];
+      if (focused) return focused;
+      return activeMonthForItem(card.id, card);
+    }
+
+    function moveCardToNextMonth(cardId) {
+      const card = findItem("card", cardId);
+      if (!card) return;
+      let month = addMonthKey(activeCardMonth(card), 1);
+      for (let step = 0; step < 60; step += 1) {
+        if (!itemPayment(cardId, month)) {
+          state.cardFocus[cardId] = month;
+          saveState();
+          render();
+          return;
+        }
+        month = addMonthKey(month, 1);
+      }
+    }
+
+    function cardForLoan(loan) {
+      const target = String(loan.cardName || "").trim().toLowerCase();
+      if (!target) return null;
+      return state.cards.find(card => card.name.trim().toLowerCase() === target) || null;
+    }
+
+    function firstLoanPaymentMonth(loan) {
+      return addMonthKey(dateToMonthKey(loan.startDate), 1);
+    }
+
+    function loanScheduleIndex(loan, month) {
+      const firstMonth = firstLoanPaymentMonth(loan);
+      if (month < firstMonth) return -1;
+      const [firstYear, firstMonthNumber] = firstMonth.split("-").map(Number);
+      const [year, monthNumber] = month.split("-").map(Number);
+      const index = (year - firstYear) * 12 + (monthNumber - firstMonthNumber);
+      if (loan.terms && index >= loan.terms) return -1;
+      return index;
+    }
+
+    function loanDueDateForMonth(loan, month) {
+      return monthDate(loan.dueDay, month);
+    }
+
+    function loanMonthHasElapsed(loan, month) {
+      const dueDate = loanDueDateForMonth(loan, month);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      return dueDate <= today;
+    }
+
+    function loanMonthIsPaid(loan, month) {
+      const card = cardForLoan(loan);
+      if (card && cardPaymentCoversLoan(loan, month)) return true;
+      const loanPayment = itemPayment(loan.id, month);
+      return Boolean(loanPayment && paymentIsComplete(loanPayment, loan.monthly));
+    }
+
+    function cardPaymentCoversLoan(loan, month) {
+      const card = cardForLoan(loan);
+      if (!card) return false;
+      const payment = itemPayment(card.id, month);
+      if (!payment) return false;
+      if (paymentIsComplete(payment, card.monthly)) return true;
+      let available = paymentTotalPen(payment);
+      const linkedLoans = state.loans
+        .filter(item => {
+          const linkedCard = cardForLoan(item);
+          return linkedCard && linkedCard.id === card.id && loanScheduleIndex(item, month) >= 0;
+        })
+        .sort((a, b) => a.dueDay - b.dueDay || a.name.localeCompare(b.name));
+
+      for (const item of linkedLoans) {
+        if (item.id === loan.id) return available + 0.005 >= toNumber(item.monthly);
+        available -= toNumber(item.monthly);
+        if (available <= 0) return false;
+      }
+      return false;
+    }
+
+    function loanMonthCountsAsPaid(loan, month) {
+      if (loanScheduleIndex(loan, month) < 0) return false;
+      return loanMonthIsPaid(loan, month) || loanMonthHasElapsed(loan, month);
+    }
+
+    function loanPaidCount(loan) {
+      const terms = loan.terms || 60;
+      let count = 0;
+      let month = firstLoanPaymentMonth(loan);
+      for (let step = 0; step < terms; step += 1) {
+        if (loanMonthCountsAsPaid(loan, month)) count += 1;
+        month = addMonthKey(month, 1);
+      }
+      return count;
+    }
+
+    function activeLoanMonth(loan) {
+      if (loan.terms > 0) {
+        const paidCount = loanPaidCount(loan);
+        if (paidCount >= loan.terms) return "";
+      }
+      let month = currentMonthKey() < firstLoanPaymentMonth(loan) ? firstLoanPaymentMonth(loan) : currentMonthKey();
+      for (let step = 0; step < Math.max(loan.terms || 60, 60); step += 1) {
+        if (!loanMonthCountsAsPaid(loan, month)) return month;
+        month = addMonthKey(month, 1);
+      }
+      return month;
+    }
+
+    function totalLoanPaid(loan) {
+      const baseInstallments = loan.monthly > 0 ? Math.floor(toNumber(loan.paidBase) / toNumber(loan.monthly)) : 0;
+      const countedInstallments = Math.max(0, loanPaidCount(loan) - baseInstallments);
+      return toNumber(loan.paidBase) + (countedInstallments * toNumber(loan.monthly));
+    }
+
+    function loanAnalysis(principal, paid, monthly, terms, startDate) {
+      const remaining = Math.max(0, principal - paid);
+      const agreedInstallments = Math.max(0, Math.round(toNumber(terms)));
+      const installmentsPaid = monthly > 0 ? Math.floor(paid / monthly) : 0;
+      const installments = agreedInstallments > 0
+        ? Math.max(0, agreedInstallments - installmentsPaid)
+        : (monthly > 0 ? Math.ceil(remaining / monthly) : 0);
+      const totalProjected = agreedInstallments > 0
+        ? agreedInstallments * monthly
+        : paid + (installments * monthly);
+      const extra = Math.max(0, totalProjected - principal);
+      const startMonth = dateToMonthKey(startDate);
+      const firstMonth = addMonthKey(startMonth, 1);
+      const dueDay = clampDay(dayFromDate(startDate));
+      const totalInstallments = agreedInstallments || installments;
+      const finalMonth = totalInstallments > 0 ? addMonthKey(firstMonth, totalInstallments - 1) : firstMonth;
+      return {
+        installments,
+        totalProjected,
+        extra,
+        dueDay,
+        firstPaymentDate: dateInputFromMonthDay(firstMonth, dueDay),
+        finalPaymentDate: dateInputFromMonthDay(finalMonth, dueDay)
+      };
+    }
+
+    function updateLoanAnalytics() {
+      const analysis = loanAnalysis(
+        toNumber(els.loanPrincipal.value),
+        toNumber(els.loanPaid.value),
+        toNumber(els.loanMonthly.value),
+        toNumber(els.loanTerms.value),
+        els.loanDue.value
+      );
+      els.loanInstallments.textContent = analysis.installments;
+      els.loanTotalProjected.textContent = money.format(analysis.totalProjected);
+      els.loanExtraProjected.textContent = money.format(analysis.extra);
+      els.loanPaymentDay.textContent = analysis.firstPaymentDate.split("-").reverse().join("/");
+      els.loanFinalPayment.textContent = analysis.finalPaymentDate.split("-").reverse().join("/");
+    }
+
+    function monthPaidTotal(month = currentMonthKey()) {
+      return state.payments
+        .filter(payment => payment.month === month && payment.kind === "card")
+        .reduce((sum, payment) => sum + paymentTotalPen(payment), 0);
+    }
+
+    function monthDueTotal() {
+      const month = currentMonthKey();
+      return state.cards.reduce((sum, card) => {
+        const payment = itemPayment(card.id, month);
+        return sum + toNumber(payment ? paymentRemainingPen(payment, card.monthly) : cardBaseTotalPen(card));
+      }, 0);
+    }
+
+    function paymentTotalPen(payment) {
+      return toNumber(payment.amount) + (toNumber(payment.amountUsd) * (state.rate || 0));
+    }
+
+    function cardBaseTotalPen(card) {
+      return toNumber(card.monthly) + (toNumber(card.monthlyUsd) * (state.rate || 0));
+    }
+
+    function paymentBillTotalPen(payment, fallback = 0) {
+      const billAmount = toNumber(payment.billAmount || fallback);
+      return billAmount + (toNumber(payment.billAmountUsd) * (state.rate || 0));
+    }
+
+    function paymentRemainingPen(payment, fallback = 0) {
+      return Math.max(0, paymentBillTotalPen(payment, fallback) - paymentTotalPen(payment));
+    }
+
+    function paymentIsComplete(payment, fallback = 0) {
+      const billTotal = paymentBillTotalPen(payment, fallback);
+      return billTotal > 0 && paymentTotalPen(payment) + 0.005 >= billTotal;
+    }
+
+    function loanTotalToPay(loan, paid = totalLoanPaid(loan)) {
+      return loanAnalysis(loan.principal, paid, loan.monthly, loan.terms, loan.startDate).totalProjected;
+    }
+
+    function loanRemainingToPay(loan, paid = totalLoanPaid(loan)) {
+      return Math.max(0, loanTotalToPay(loan, paid) - paid);
+    }
+
+    function loanKpis() {
+      return state.loans.reduce((totals, loan) => {
+        const paid = totalLoanPaid(loan);
+        const analysis = loanAnalysis(loan.principal, paid, loan.monthly, loan.terms, loan.startDate);
+        totals.principal += toNumber(loan.principal);
+        totals.extra += toNumber(analysis.extra);
+        totals.monthly += toNumber(loan.monthly);
+        totals.remaining += loanRemainingToPay(loan, paid);
+        return totals;
+      }, { principal: 0, extra: 0, monthly: 0, remaining: 0 });
+    }
+
+    function render() {
+      const month = currentMonthKey();
+      const totalDue = monthDueTotal();
+      const totalPaid = monthPaidTotal(month);
+      const loanTotals = loanKpis();
+      els.today.textContent = dateFmt.format(new Date());
+      els.monthLabel.textContent = monthFmt.format(new Date());
+      els.rateInput.value = state.rate || "";
+      els.rateView.textContent = money.format(state.rate || 0);
+      if (!els.rateStatus.textContent) els.rateStatus.textContent = "Se actualiza al abrir";
+      els.monthlyTotal.textContent = money.format(totalDue);
+      els.monthlyPaid.textContent = money.format(totalPaid);
+      els.monthlyPending.textContent = `Restante S/ ${money.format(totalDue)}`;
+      els.loansPrincipalKpi.textContent = money.format(loanTotals.principal);
+      els.loansExtraKpi.textContent = money.format(loanTotals.extra);
+      els.loansMonthlyKpi.textContent = money.format(loanTotals.monthly);
+      els.loansRemainingKpi.textContent = money.format(loanTotals.remaining);
+      els.cardOptions.innerHTML = state.cards.map(card => `<option value="${escapeHtml(card.name)}"></option>`).join("");
+      renderLoans();
+      renderCards();
+      renderHistory();
+      updateLoanAnalytics();
+    }
+
+    async function refreshExchangeRate() {
+      els.rateStatus.textContent = "Actualizando tipo de cambio...";
+      try {
+        const response = await fetch("https://open.er-api.com/v6/latest/USD", { cache: "no-store" });
+        if (!response.ok) throw new Error("No se pudo leer el tipo de cambio");
+        const data = await response.json();
+        const pen = toNumber(data && data.rates && data.rates.PEN);
+        if (!pen) throw new Error("Respuesta sin PEN");
+        state.rate = pen;
+        saveState();
+        els.rateInput.value = state.rate;
+        els.rateView.textContent = money.format(state.rate);
+        const updated = new Date();
+        els.rateStatus.textContent = `Actualizado hoy ${updated.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}`;
+      } catch {
+        els.rateStatus.textContent = "No se pudo actualizar; puedes editarlo";
+      }
+    }
+
+    function renderLoans() {
+      if (!state.loans.length) {
+        els.loans.innerHTML = `<div class="empty">Agrega tu primer préstamo pasado a cuotas para ver su análisis.</div>`;
+        return;
+      }
+
+      els.loans.innerHTML = state.loans
+        .slice()
+        .sort((a, b) => a.dueDay - b.dueDay)
+        .map(loan => {
+          const activeMonth = activeLoanMonth(loan);
+          const isCompleted = !activeMonth;
+          const isFuture = activeMonth !== currentMonthKey();
+          const linkedCard = cardForLoan(loan);
+          const currentMonthPaid = loanMonthIsPaid(loan, currentMonthKey());
+          const currentMonthElapsed = loanScheduleIndex(loan, currentMonthKey()) >= 0 && loanMonthHasElapsed(loan, currentMonthKey());
+          const hasStarted = currentMonthKey() >= firstLoanPaymentMonth(loan);
+          const loanStatus = isCompleted
+            ? "completado"
+            : (!linkedCard
+              ? "elige tarjeta"
+              : (!hasStarted
+                ? `empieza ${monthName(activeMonth)}`
+                : (currentMonthPaid ? `${monthName(currentMonthKey())} pagado` : (currentMonthElapsed ? `${monthName(currentMonthKey())} contado por fecha` : `${monthName(currentMonthKey())} pendiente`))));
+          const paid = totalLoanPaid(loan);
+          const analysis = loanAnalysis(loan.principal, paid, loan.monthly, loan.terms, loan.startDate);
+          const remaining = loanRemainingToPay(loan, paid);
+          const pct = loan.principal > 0 ? Math.min(100, Math.round((paid / loan.principal) * 100)) : 0;
+          const due = paymentDayLabel(loan.dueDay);
+
+          return `
+            <article class="payment-row">
+              <div>
+                <div class="name">${escapeHtml(loan.name)}</div>
+                <div class="bar"><div style="width:${pct}%"></div></div>
+                <div class="tiny">${pct}% pagado · ${analysis.installments} cuotas restantes · ${isCompleted ? "completado" : (isFuture ? `próximo ${monthName(activeMonth)}` : monthName(activeMonth))}</div>
+              </div>
+              <div class="loan-total">
+                <div class="label">Prestado</div>
+                <strong>S/ ${money.format(loan.principal)}</strong>
+                <div class="tiny danger-text">Extra S/ ${money.format(analysis.extra)}</div>
+              </div>
+              <div class="amount">Cuota<br>S/ ${money.format(loan.monthly)}</div>
+              <div class="amount ok">Pagado<br>S/ ${money.format(paid)}<div class="tiny">Resta S/ ${money.format(remaining)}</div></div>
+              <div class="due">${due.text}<br>${due.dateText}</div>
+              <div class="pay-box">
+                <div class="label">Tarjeta</div>
+                <strong>${escapeHtml(loan.cardName || "Sin vincular")}</strong>
+                <div class="${currentMonthPaid || currentMonthElapsed || isCompleted ? "tiny ok" : "tiny"}">
+                  ${loanStatus}
+                </div>
+              </div>
+              <div class="row-actions">
+                <button type="button" data-action="edit" data-kind="loan" data-id="${loan.id}">Editar</button>
+                <button class="danger" type="button" data-action="delete" data-kind="loan" data-id="${loan.id}">Borrar</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+    }
+
+    function renderCards() {
+      if (!state.cards.length) {
+        els.cards.innerHTML = `<div class="empty">Agrega una tarjeta para ver el pago mensual y su vencimiento.</div>`;
+        return;
+      }
+
+      els.cards.innerHTML = state.cards
+        .slice()
+        .sort((a, b) => a.dueDay - b.dueDay)
+        .map(card => {
+          const activeMonth = activeCardMonth(card);
+          const isFuture = activeMonth !== currentMonthKey();
+          const currentMonthPayment = itemPayment(card.id, currentMonthKey());
+          const activePayment = itemPayment(card.id, activeMonth);
+          const due = paymentDayLabel(card.dueDay);
+          const valuePen = activePayment ? activePayment.billAmount : (isFuture ? 0 : card.monthly);
+          const valueUsd = activePayment ? activePayment.billAmountUsd : (isFuture ? 0 : card.monthlyUsd);
+          const currentTotal = currentMonthPayment ? paymentRemainingPen(currentMonthPayment, card.monthly) : cardBaseTotalPen(card);
+          const currentUsd = currentMonthPayment ? toNumber(currentMonthPayment.billAmountUsd) : toNumber(card.monthlyUsd);
+          const paidTotal = activePayment ? paymentTotalPen(activePayment) : 0;
+          const billTotal = activePayment ? paymentBillTotalPen(activePayment, card.monthly) : (toNumber(valuePen) + (toNumber(valueUsd) * (state.rate || 0)));
+          const pendingTotal = Math.max(0, billTotal - paidTotal);
+          const complete = activePayment && paymentIsComplete(activePayment, card.monthly);
+          const actionText = `Registrar pago ${monthName(activeMonth).split(" ")[0]}`;
+          return `
+            <article class="payment-row card-row">
+              <div>
+                <div class="name">${escapeHtml(card.name)}</div>
+                <div class="tiny">${isFuture ? `${monthName(currentMonthKey())} pagado · escribe ${monthName(activeMonth)}` : `monto variable de ${monthName(activeMonth)}`} ${complete ? "· completado" : ""}</div>
+              </div>
+              <div class="amount blue">
+                Saldo actual<br>S/ ${money.format(currentTotal)}
+                ${currentUsd ? `<div class="tiny">Incluye $ ${money.format(currentUsd)} al cambio</div>` : ""}
+              </div>
+              <div class="due">${due.text}<br>${due.dateText}</div>
+              <div class="pay-box">
+                <div class="month-fields">
+                  <span class="mini-label">Soles de ${monthName(activeMonth).split(" ")[0]}</span>
+                  <input type="text" inputmode="decimal" value="${valuePen}" data-pay-amount="${card.id}" data-pay-month="${activeMonth}" />
+                  <span class="mini-label">Dólares de ${monthName(activeMonth).split(" ")[0]}</span>
+                  <input type="text" inputmode="decimal" value="${valueUsd}" data-pay-usd="${card.id}" data-pay-month="${activeMonth}" />
+                  <div class="tiny">Total aprox. S/ ${money.format(billTotal)}</div>
+                  <span class="mini-label">Pago a registrar</span>
+                  <input type="text" inputmode="decimal" placeholder="Ej. 400.50" data-partial-amount="${card.id}" data-pay-month="${activeMonth}" />
+                  <div class="tiny ok">Pagado S/ ${money.format(paidTotal)} · saldo S/ ${money.format(pendingTotal)}</div>
+                </div>
+                <button class="primary" type="button" data-action="toggle-paid" data-kind="card" data-id="${card.id}" data-month="${activeMonth}">
+                  ${actionText}
+                </button>
+                ${complete ? `<button class="secondary" type="button" data-action="next-card-month" data-id="${card.id}">Siguiente mes</button>` : ""}
+              </div>
+              <div class="row-actions">
+                <button type="button" data-action="edit" data-kind="card" data-id="${card.id}">Editar</button>
+                <button class="danger" type="button" data-action="delete" data-kind="card" data-id="${card.id}">Borrar</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+    }
+
+    function renderHistory() {
+      if (!state.payments.length) {
+        els.history.innerHTML = `<div class="empty">Cuando marques pagos, aparecerán aquí por mes.</div>`;
+        return;
+      }
+
+      const rows = state.payments.flatMap(payment => {
+        const entries = payment.entries && payment.entries.length
+          ? payment.entries
+          : [{ amount: payment.amount, amountUsd: payment.amountUsd, paidAt: payment.paidAt }];
+        return entries.map(entry => ({ payment, entry }));
+      });
+
+      els.history.innerHTML = rows
+        .sort((a, b) => b.payment.month.localeCompare(a.payment.month) || b.entry.paidAt.localeCompare(a.entry.paidAt))
+        .map(({ payment, entry }) => {
+          const linkedLoans = payment.kind === "card" && paymentIsComplete(payment) ? linkedLoansForCardPayment(payment) : [];
+          const entryTotal = toNumber(entry.amount) + (toNumber(entry.amountUsd) * (state.rate || 0));
+          return `
+            <div class="history-row">
+              <div>${escapeHtml(payment.month)}</div>
+              <div>
+                ${escapeHtml(payment.name)}
+                ${linkedLoans.length ? `<div class="tiny">Incluye cuotas: ${linkedLoans.map(loan => `${escapeHtml(loan.name)} S/ ${money.format(loan.monthly)}`).join(" · ")}</div>` : ""}
+              </div>
+              <div>${payment.kind === "loan" ? "Préstamo" : "Tarjeta"}</div>
+              <div class="amount ok">
+                S/ ${money.format(entryTotal)}
+                ${entry.amountUsd ? `<div class="tiny">$ ${money.format(entry.amountUsd)} + S/ ${money.format(entry.amount)}</div>` : ""}
+              </div>
+              <button class="danger" type="button" data-action="remove-payment" data-payment-id="${payment.id}">Quitar</button>
+            </div>
+          `;
+        }).join("");
+    }
+
+    function linkedLoansForCardPayment(payment) {
+      return state.loans.filter(loan => {
+        const card = cardForLoan(loan);
+        if (!card || card.id !== payment.itemId) return false;
+        return loanScheduleIndex(loan, payment.month) >= 0;
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function findItem(kind, id) {
+      return kind === "loan"
+        ? state.loans.find(item => item.id === id)
+        : state.cards.find(item => item.id === id);
+    }
+
+    function upsertPayment(kind, id, month = currentMonthKey()) {
+      const item = findItem(kind, id);
+      if (!item) return;
+      const amountInput = document.querySelector(`[data-pay-amount="${id}"][data-pay-month="${month}"]`);
+      const usdInput = document.querySelector(`[data-pay-usd="${id}"][data-pay-month="${month}"]`);
+      const partialInput = document.querySelector(`[data-partial-amount="${id}"][data-pay-month="${month}"]`);
+      const billAmount = toNumber(amountInput ? amountInput.value : item.monthly);
+      const billAmountUsd = toNumber(usdInput ? usdInput.value : item.monthlyUsd);
+      const amount = toNumber(partialInput ? partialInput.value : billAmount);
+      const amountUsd = 0;
+      if (!amount && !amountUsd) {
+        alert("Escribe el pago que quieres registrar.");
+        return;
+      }
+      const existing = state.payments.findIndex(payment => payment.itemId === id && payment.month === month);
+      if (existing >= 0) {
+        state.payments[existing].billAmount = billAmount;
+        state.payments[existing].billAmountUsd = billAmountUsd;
+        state.payments[existing].amount = toNumber(state.payments[existing].amount) + amount;
+        state.payments[existing].amountUsd = toNumber(state.payments[existing].amountUsd) + amountUsd;
+        state.payments[existing].entries = state.payments[existing].entries || [];
+        state.payments[existing].entries.push({ amount, amountUsd, paidAt: new Date().toISOString() });
+        state.payments[existing].paidAt = new Date().toISOString();
+      } else {
+        state.payments.push({
+          id: makeId("pay", `${id}-${month}`),
+          itemId: id,
+          kind,
+          name: item.name,
+          month,
+          billAmount,
+          billAmountUsd,
+          amount,
+          amountUsd,
+          entries: [{ amount, amountUsd, paidAt: new Date().toISOString() }],
+          paidAt: new Date().toISOString()
+        });
+      }
+      if (kind === "card") {
+        const payment = itemPayment(id, month);
+        state.cardFocus[id] = payment && paymentIsComplete(payment, item.monthly) ? addMonthKey(month, 1) : month;
+      }
+      saveState();
+      render();
+    }
+
+    function editItem(kind, id) {
+      const item = findItem(kind, id);
+      if (!item) return;
+      if (kind === "loan") {
+        openLoanForm(true);
+        editingLoanId = id;
+        els.loanFormTitle.textContent = "Editar préstamo";
+        els.loanSubmit.textContent = "Actualizar préstamo";
+        els.cancelLoanEdit.hidden = false;
+        els.loanEditBanner.classList.add("active");
+        els.loanEditName.textContent = `Estás editando: ${item.name}`;
+        els.loanName.value = item.name;
+        els.loanCard.value = item.cardName || "";
+        els.loanPrincipal.value = item.principal;
+        els.loanPaid.value = item.paidBase;
+        els.loanMonthly.value = item.monthly;
+        els.loanTerms.value = item.terms || "";
+        els.loanDue.value = item.startDate || dateInputFromDay(item.dueDay);
+        updateLoanAnalytics();
+      } else {
+        openCardForm(true);
+        editingCardId = id;
+        els.cardFormTitle.textContent = "Editar tarjeta";
+        els.cardSubmit.textContent = "Actualizar tarjeta";
+        els.cancelCardEdit.hidden = false;
+        els.cardEditBanner.classList.add("active");
+        els.cardEditName.textContent = `Estás editando: ${item.name}`;
+        els.cardName.value = item.name;
+        els.cardMonthly.value = item.monthly;
+        els.cardMonthlyUsd.value = item.monthlyUsd || "";
+        els.cardDue.value = dateInputFromDay(item.dueDay);
+      }
+    }
+
+    function resetLoanForm() {
+      editingLoanId = "";
+      els.loanForm.reset();
+      els.loanFormTitle.textContent = "Agregar préstamo";
+      els.loanSubmit.textContent = "Guardar préstamo";
+      els.cancelLoanEdit.hidden = true;
+      els.cancelLoanEdit.textContent = "Cancelar edición";
+      els.loanEditBanner.classList.remove("active");
+      els.loanEditName.textContent = "Estás modificando este préstamo.";
+      closeLoanForm();
+      updateLoanAnalytics();
+    }
+
+    function resetCardForm() {
+      editingCardId = "";
+      els.cardForm.reset();
+      els.cardFormTitle.textContent = "Agregar tarjeta";
+      els.cardSubmit.textContent = "Guardar tarjeta";
+      els.cancelCardEdit.hidden = true;
+      els.cancelCardEdit.textContent = "Cancelar edición";
+      els.cardEditBanner.classList.remove("active");
+      els.cardEditName.textContent = "Estás modificando esta tarjeta.";
+      closeCardForm();
+    }
+
+    function openLoanForm(isEditing = false) {
+      els.loanEditorPanel.classList.remove("form-hidden");
+      els.loanListPanel.classList.remove("span-12");
+      els.loanListPanel.classList.add("span-7");
+      els.loanForm.classList.remove("form-hidden");
+      els.loanAnalytics.classList.remove("form-hidden");
+      els.loanHelp.classList.remove("form-hidden");
+      els.showLoanForm.hidden = Boolean(isEditing);
+      els.showLoanForm.textContent = "Cerrar";
+      els.cancelLoanEdit.hidden = false;
+      els.cancelLoanEdit.textContent = isEditing ? "Cancelar edición" : "Cerrar";
+    }
+
+    function closeLoanForm() {
+      if (editingLoanId) return;
+      els.loanEditorPanel.classList.add("form-hidden");
+      els.loanListPanel.classList.remove("span-7");
+      els.loanListPanel.classList.add("span-12");
+      els.loanForm.classList.add("form-hidden");
+      els.loanAnalytics.classList.add("form-hidden");
+      els.loanHelp.classList.add("form-hidden");
+      els.showLoanForm.hidden = false;
+      els.showLoanForm.textContent = "Añadir préstamo";
+      els.cancelLoanEdit.hidden = true;
+    }
+
+    function openCardForm(isEditing = false) {
+      els.cardEditorPanel.classList.remove("form-hidden");
+      els.cardListPanel.classList.remove("span-12");
+      els.cardListPanel.classList.add("span-7");
+      els.cardForm.classList.remove("form-hidden");
+      els.cardHelp.classList.remove("form-hidden");
+      els.showCardForm.hidden = Boolean(isEditing);
+      els.showCardForm.textContent = "Cerrar";
+      els.cancelCardEdit.hidden = false;
+      els.cancelCardEdit.textContent = isEditing ? "Cancelar edición" : "Cerrar";
+    }
+
+    function closeCardForm() {
+      if (editingCardId) return;
+      els.cardEditorPanel.classList.add("form-hidden");
+      els.cardListPanel.classList.remove("span-7");
+      els.cardListPanel.classList.add("span-12");
+      els.cardForm.classList.add("form-hidden");
+      els.cardHelp.classList.add("form-hidden");
+      els.showCardForm.hidden = false;
+      els.showCardForm.textContent = "Añadir tarjeta";
+      els.cancelCardEdit.hidden = true;
+    }
+
+    function deleteItem(kind, id) {
+      const collection = kind === "loan" ? state.loans : state.cards;
+      const index = collection.findIndex(item => item.id === id);
+      if (index >= 0) collection.splice(index, 1);
+      state.payments = state.payments.filter(payment => payment.itemId !== id);
+      saveState();
+      render();
+    }
+
+    function download(filename, text, type = "text/plain;charset=utf-8") {
+      const blob = new Blob([text], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvCell(value) {
+      const text = String(value ?? "");
+      return `"${text.replaceAll('"', '""')}"`;
+    }
+
+    function backupJson() {
+      return JSON.stringify({
+        version: storageKey,
+        user: currentUser ? { name: currentUser.name, email: currentUser.email } : null,
+        exportedAt: new Date().toISOString(),
+        state
+      }, null, 2);
+    }
+
+    function toCsv() {
+      const rows = [["tipo", "nombre", "tarjeta_vinculada", "monto", "pagado", "pago_mensual", "pago_mensual_dolares", "cuotas", "fecha_inicio", "mes_historial", "monto_pagado_soles", "monto_pagado_dolares"]];
+      state.loans.forEach(loan => rows.push(["prestamo", loan.name, loan.cardName || "", loan.principal, loan.paidBase, loan.monthly, "", loan.terms || "", loan.startDate || dateInputFromDay(loan.dueDay), "", "", ""]));
+      state.cards.forEach(card => rows.push(["tarjeta", card.name, "", "", "", card.monthly, card.monthlyUsd || "", "", dateInputFromDay(card.dueDay), "", "", ""]));
+      state.payments.forEach(payment => rows.push(["historial", payment.name, "", "", "", "", "", "", "", payment.month, payment.amount, payment.amountUsd || ""]));
+      return rows.map(row => row.map(csvCell).join(",")).join("\n");
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"' && quoted && next === '"') {
+          cell += '"';
+          i += 1;
+        } else if (char === '"') {
+          quoted = !quoted;
+        } else if (char === "," && !quoted) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") i += 1;
+          row.push(cell);
+          if (row.some(value => value.trim() !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+      row.push(cell);
+      if (row.some(value => value.trim() !== "")) rows.push(row);
+      return rows;
+    }
+
+    function importRows(rows) {
+      const [header, ...body] = rows;
+      if (!header) return;
+      const keys = header.map(value => value.trim().toLowerCase());
+      const get = (row, key) => row[keys.indexOf(key)] ?? "";
+      const next = { ...state, loans: [], cards: [], payments: [] };
+
+      body.forEach(row => {
+        const type = get(row, "tipo").trim().toLowerCase();
+        const name = get(row, "nombre").trim();
+        if (!name) return;
+        if (type === "prestamo" || type === "préstamo") {
+          next.loans.push(normalizeLoan({
+            name,
+            cardName: get(row, "tarjeta_vinculada").trim(),
+            principal: toNumber(get(row, "monto")),
+            paidBase: toNumber(get(row, "pagado")),
+            monthly: toNumber(get(row, "pago_mensual")),
+            terms: toNumber(get(row, "cuotas")),
+            startDate: (get(row, "fecha_inicio") || get(row, "vencimiento")).trim()
+          }, name));
+        }
+        if (type === "tarjeta") {
+          next.cards.push(normalizeCard({
+            name,
+            monthly: toNumber(get(row, "pago_mensual")),
+            monthlyUsd: toNumber(get(row, "pago_mensual_dolares")),
+            due: (get(row, "fecha_inicio") || get(row, "vencimiento")).trim()
+          }, name));
+        }
+      });
+
+      state = next;
+      saveState();
+      resetLoanForm();
+      resetCardForm();
+      render();
+    }
+
+    els.rateInput.addEventListener("input", event => {
+      state.rate = toNumber(event.target.value);
+      saveState();
+      render();
+    });
+
+    els.showLogin.addEventListener("click", () => setAuthMode("login"));
+    els.showSignup.addEventListener("click", () => setAuthMode("signup"));
+
+    els.signupForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const name = els.signupName.value.trim();
+      const email = normalizeEmail(els.signupEmail.value);
+      const password = els.signupPassword.value;
+      const minimumPasswordLength = cloudMode ? 6 : 4;
+      if (!name || !email || password.length < minimumPasswordLength) {
+        showAuthMessage(`Completa nombre, correo y una clave de mínimo ${minimumPasswordLength} caracteres.`);
+        return;
+      }
+      if (cloudMode) {
+        showAuthMessage("Creando tu cuenta...");
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { data: { name } }
+        });
+        if (error) {
+          showAuthMessage(error.message);
+          return;
+        }
+        els.signupForm.reset();
+        if (!data.session) {
+          setAuthMode("login");
+          showAuthMessage("Cuenta creada. Revisa tu correo para confirmarla y luego inicia sesión.");
+          return;
+        }
+        currentUser = cloudUser(data.user);
+        state = normalizeState(defaultState);
+        await loadCloudState();
+        refreshAuthView();
+        refreshExchangeRate();
+        return;
+      }
+      const users = readUsers();
+      const firstUser = users.length === 0;
+      if (users.some(user => normalizeEmail(user.email) === email)) {
+        showAuthMessage("Ese correo ya existe. Inicia sesión.");
+        setAuthMode("login");
+        els.loginEmail.value = email;
+        return;
+      }
+      const user = { name, email, password, createdAt: new Date().toISOString() };
+      users.push(user);
+      saveUsers(users);
+      localStorage.setItem(sessionKey, email);
+      currentUser = user;
+      const legacy = firstUser ? readBestLegacyState() : normalizeState(defaultState);
+      state = firstUser && stateScore(legacy) ? legacy : normalizeState(defaultState);
+      saveState();
+      els.signupForm.reset();
+      refreshAuthView();
+      refreshExchangeRate();
+    });
+
+    els.loginForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const email = normalizeEmail(els.loginEmail.value);
+      const password = els.loginPassword.value;
+      if (cloudMode) {
+        showAuthMessage("Abriendo tu panel...");
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          showAuthMessage("Correo o clave incorrectos.");
+          return;
+        }
+        currentUser = cloudUser(data.user);
+        await loadCloudState();
+        els.loginForm.reset();
+        refreshAuthView();
+        refreshExchangeRate();
+        return;
+      }
+      const user = readUsers().find(candidate => normalizeEmail(candidate.email) === email && candidate.password === password);
+      if (!user) {
+        showAuthMessage("Correo o clave incorrectos para este prototipo.");
+        return;
+      }
+      localStorage.setItem(sessionKey, email);
+      currentUser = user;
+      state = readState();
+      els.loginForm.reset();
+      refreshAuthView();
+      refreshExchangeRate();
+    });
+
+    els.logout.addEventListener("click", async () => {
+      if (cloudMode) await supabaseClient.auth.signOut();
+      localStorage.removeItem(sessionKey);
+      currentUser = null;
+      state = normalizeState(defaultState);
+      refreshAuthView();
+    });
+
+    els.showLoanForm.addEventListener("click", () => {
+      if (els.loanForm.classList.contains("form-hidden")) openLoanForm();
+      else closeLoanForm();
+    });
+    els.showCardForm.addEventListener("click", () => {
+      if (els.cardForm.classList.contains("form-hidden")) openCardForm();
+      else closeCardForm();
+    });
+
+    [els.loanPrincipal, els.loanPaid, els.loanMonthly, els.loanTerms, els.loanDue].forEach(input => {
+      input.addEventListener("input", updateLoanAnalytics);
+      input.addEventListener("change", updateLoanAnalytics);
+    });
+
+    els.loanForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = els.loanName.value.trim();
+      if (!name) return;
+      const nextLoan = {
+        id: editingLoanId || makeId("loan", name),
+        name,
+        cardName: els.loanCard.value.trim(),
+        principal: toNumber(els.loanPrincipal.value),
+        paidBase: toNumber(els.loanPaid.value),
+        monthly: toNumber(els.loanMonthly.value),
+        terms: Math.max(0, Math.round(toNumber(els.loanTerms.value))),
+        startDate: els.loanDue.value,
+        dueDay: clampDay(dayFromDate(els.loanDue.value))
+      };
+      const index = state.loans.findIndex(loan => loan.id === nextLoan.id);
+      if (index >= 0) state.loans[index] = nextLoan;
+      else state.loans.push(nextLoan);
+      state.payments.forEach(payment => {
+        if (payment.itemId === nextLoan.id) payment.name = nextLoan.name;
+      });
+      saveState();
+      resetLoanForm();
+      render();
+    });
+
+    els.cardForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const name = els.cardName.value.trim();
+      if (!name) return;
+      const nextCard = {
+        id: editingCardId || makeId("card", name),
+        name,
+        monthly: toNumber(els.cardMonthly.value),
+        monthlyUsd: toNumber(els.cardMonthlyUsd.value),
+        dueDay: clampDay(dayFromDate(els.cardDue.value))
+      };
+      const index = state.cards.findIndex(card => card.id === nextCard.id);
+      const previousName = index >= 0 ? state.cards[index].name : "";
+      if (index >= 0) state.cards[index] = nextCard;
+      else state.cards.push(nextCard);
+      if (previousName && previousName !== nextCard.name) {
+        state.loans.forEach(loan => {
+          if (loan.cardName.trim().toLowerCase() === previousName.trim().toLowerCase()) {
+            loan.cardName = nextCard.name;
+          }
+        });
+      }
+      state.payments.forEach(payment => {
+        if (payment.itemId === nextCard.id) payment.name = nextCard.name;
+      });
+      saveState();
+      resetCardForm();
+      render();
+    });
+
+    document.addEventListener("click", event => {
+      const actionTarget = event.target.closest("[data-action]");
+      if (!actionTarget) return;
+      const action = actionTarget.dataset.action;
+      if (action === "toggle-paid") upsertPayment(actionTarget.dataset.kind, actionTarget.dataset.id, actionTarget.dataset.month);
+      if (action === "next-card-month") moveCardToNextMonth(actionTarget.dataset.id);
+      if (action === "edit") editItem(actionTarget.dataset.kind, actionTarget.dataset.id);
+      if (action === "delete" && confirm("¿Borrar este registro y su historial?")) deleteItem(actionTarget.dataset.kind, actionTarget.dataset.id);
+      if (action === "remove-payment") {
+        const removed = state.payments.find(payment => payment.id === actionTarget.dataset.paymentId);
+        state.payments = state.payments.filter(payment => payment.id !== actionTarget.dataset.paymentId);
+        if (removed && removed.kind === "card") delete state.cardFocus[removed.itemId];
+        saveState();
+        render();
+      }
+    });
+
+    document.addEventListener("change", event => {
+      const amountInput = event.target.closest("[data-pay-amount]");
+      const usdInput = event.target.closest("[data-pay-usd]");
+      if (!amountInput && !usdInput) return;
+      const input = amountInput || usdInput;
+      const id = input.dataset.payAmount || input.dataset.payUsd;
+      const payment = itemPayment(id, input.dataset.payMonth);
+      if (!payment) return;
+      if (amountInput) payment.billAmount = toNumber(amountInput.value);
+      if (usdInput) payment.billAmountUsd = toNumber(usdInput.value);
+      saveState();
+      render();
+    });
+
+    els.cancelLoanEdit.addEventListener("click", resetLoanForm);
+    els.cancelCardEdit.addEventListener("click", resetCardForm);
+
+    els.clearCurrentMonth.addEventListener("click", () => {
+      const month = currentMonthKey();
+      state.payments = state.payments.filter(payment => payment.month !== month);
+      state.cardFocus = {};
+      saveState();
+      render();
+    });
+
+    els.exportCsv.addEventListener("click", () => {
+      download("panel-pagos.csv", toCsv(), "text/csv;charset=utf-8");
+    });
+
+    els.exportBackup.addEventListener("click", () => {
+      download("respaldo-panel-pagos.json", backupJson(), "application/json;charset=utf-8");
+    });
+
+    els.importBackup.addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text());
+        state = normalizeState(parsed.state || parsed);
+        saveState();
+        resetLoanForm();
+        resetCardForm();
+        render();
+      } catch {
+        alert("No se pudo restaurar ese respaldo.");
+      }
+      event.target.value = "";
+    });
+
+    els.downloadTemplate.addEventListener("click", () => {
+      download("plantilla-panel-pagos.csv", [
+        "tipo,nombre,tarjeta_vinculada,monto,pagado,pago_mensual,pago_mensual_dolares,cuotas,fecha_inicio,mes_historial,monto_pagado_soles,monto_pagado_dolares",
+        "prestamo,Lavadora,Interbank,5000,1250,420,,12,2026-07-15,,,",
+        "tarjeta,Interbank,,,,350,25,,2026-07-05,,,"
+      ].join("\n"), "text/csv;charset=utf-8");
+    });
+
+    els.importCsv.addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      importRows(parseCsv(await file.text()));
+      event.target.value = "";
+    });
+
+    els.seed.addEventListener("click", () => {
+      state = {
+        rate: 3.75,
+        loans: [
+          { id: makeId("loan", "personal"), name: "Préstamo personal", cardName: "Visa BCP", principal: 8000, paidBase: 2600, monthly: 620, terms: 14, startDate: "2026-06-05", dueDay: 5 },
+          { id: makeId("loan", "laptop"), name: "Laptop", cardName: "Amex", principal: 4200, paidBase: 1800, monthly: 350, terms: 12, startDate: "2026-06-16", dueDay: 16 }
+        ],
+        cards: [
+          { id: makeId("card", "visa"), name: "Visa BCP", monthly: 430, dueDay: 11 },
+          { id: makeId("card", "amex"), name: "Amex", monthly: 280, dueDay: 16 }
+        ],
+        payments: [],
+        cardFocus: {}
+      };
+      saveState();
+      resetLoanForm();
+      resetCardForm();
+      render();
+    });
+
+    els.reset.addEventListener("click", () => {
+      if (!confirm("¿Limpiar solo los datos de este usuario?")) return;
+      if (currentUser) localStorage.removeItem(userDataKey(currentUser));
+      else storageKeys.forEach(key => localStorage.removeItem(key));
+      state = { ...defaultState, loans: [], cards: [], payments: [] };
+      saveState();
+      resetLoanForm();
+      resetCardForm();
+      render();
+    });
+
+    async function initializeApp() {
+      els.storageDescription.textContent = cloudMode
+        ? "Tus tarjetas, cuotas e historial se guardan de forma privada en Supabase."
+        : "Modo demostración: los datos se guardan únicamente en este navegador.";
+      els.prototypeStatus.innerHTML = cloudMode
+        ? "<strong>Datos:</strong> Supabase está conectado y sincroniza cada cuenta."
+        : "<strong>Datos:</strong> falta colocar la conexión de Supabase; la app funciona en modo local.";
+      if (cloudMode) {
+        showAuthMessage("Comprobando tu sesión...");
+        const { data, error } = await supabaseClient.auth.getSession();
+        if (error) showAuthMessage(error.message);
+        if (data?.session?.user) {
+          currentUser = cloudUser(data.session.user);
+          await loadCloudState();
+        }
+      }
+      refreshAuthView();
+      if (currentUser) {
+        saveState();
+        refreshExchangeRate();
+      } else {
+        setAuthMode("login");
+      }
+    }
+
+    initializeApp();
+  </script>
+</body>
+</html>
