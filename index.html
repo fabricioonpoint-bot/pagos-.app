@@ -37,7 +37,7 @@
     button, input, select { font: inherit; }
 
     .app {
-      width: min(1220px, calc(100vw - 36px));
+      width: min(1320px, calc(100vw - 36px));
       margin: 0 auto;
       padding: 28px 0 38px;
     }
@@ -88,7 +88,7 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 18px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     h1 {
@@ -108,7 +108,7 @@
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
     }
 
@@ -116,6 +116,14 @@
       box-shadow: none;
       background: rgba(15, 18, 18, .58);
       backdrop-filter: blur(12px);
+    }
+
+    .app.records-mode .hero-stats {
+      display: none;
+    }
+
+    .app.records-mode .app-hero {
+      padding-bottom: 16px;
     }
 
     .hero-tags {
@@ -132,6 +140,34 @@
       color: var(--muted);
       background: rgba(15, 18, 18, .45);
       font-size: 12px;
+    }
+
+    .header-controls {
+      display: grid;
+      justify-items: end;
+      gap: 10px;
+    }
+
+    .view-nav {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(110px, 1fr));
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(15, 18, 18, .58);
+    }
+
+    .view-nav button {
+      min-height: 38px;
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .view-nav button.active {
+      border-color: rgba(102, 223, 163, .42);
+      background: #224033;
+      color: var(--green);
     }
 
     .actions, .row-actions {
@@ -260,6 +296,36 @@
       display: grid;
       grid-template-columns: repeat(12, 1fr);
       gap: 14px;
+    }
+
+    .view-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 4px 0 14px;
+    }
+
+    .view-heading h2 {
+      margin: 0 0 5px;
+      font-size: 24px;
+    }
+
+    .records-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .records-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .records-toolbar .danger-zone {
+      margin-left: auto;
     }
 
     .panel {
@@ -595,21 +661,49 @@
       font-variant-numeric: tabular-nums;
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 1120px) {
+      .hero-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .section-title { align-items: stretch; flex-direction: column; }
+      .section-kpis { min-width: 0; width: 100%; }
+    }
+
+    @media (max-width: 760px) {
+      .app { width: min(100% - 20px, 1320px); padding-top: 10px; }
+      .app-hero { padding: 16px; }
       .span-3, .span-5, .span-7 { grid-column: span 12; }
       header { align-items: flex-start; flex-direction: column; }
-      .actions { justify-content: flex-start; }
-      .hero-stats { grid-template-columns: 1fr; }
-      .form, .payment-row, .card-row, .history-row {
+      .header-controls { width: 100%; justify-items: stretch; }
+      .view-nav { width: 100%; }
+      .account-box { justify-content: space-between; }
+      .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero-stats .panel { padding: 13px; }
+      .hero-stats .panel:first-child { grid-column: 1 / -1; }
+      .metric { font-size: 25px; }
+      .form, .history-row {
         grid-template-columns: 1fr;
       }
+      .payment-row, .card-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .payment-row > :first-child, .card-row > :first-child,
+      .payment-row .pay-box, .card-row .pay-box,
+      .payment-row .row-actions, .card-row .row-actions { grid-column: 1 / -1; }
+      .payment-row .row-actions, .card-row .row-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .loan-analytics {
         grid-template-columns: 1fr;
       }
-      .section-title { align-items: stretch; flex-direction: column; }
-      .section-kpis { min-width: 0; }
+      .section-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .auth-shell { grid-template-columns: 1fr; }
       .amount, .due, .loan-total, .section-kpi { text-align: left; }
+      .records-summary { grid-template-columns: 1fr; }
+      .records-toolbar > *, .records-toolbar .danger-zone { width: 100%; margin-left: 0; text-align: center; }
+      .view-heading { align-items: flex-start; flex-direction: column; }
+      h1 { font-size: 40px; }
+      .hero-tags { display: none; }
+    }
+
+    @media (max-width: 430px) {
+      .section-kpis { grid-template-columns: 1fr 1fr; }
+      .section-kpi { padding: 9px; }
+      .section-kpi strong { font-size: 17px; }
     }
   </style>
 </head>
@@ -672,27 +766,20 @@
           <h1>Panel personal de pagos</h1>
           <div class="date" id="today"></div>
           <div class="hero-tags">
-            <span>Tarjetas</span>
-            <span>Cuotas</span>
-            <span>Historial mensual</span>
-            <span>USD/PEN</span>
+            <span>Control mensual</span>
+            <span>Tarjetas y cuotas</span>
+            <span>Soles y dólares</span>
           </div>
         </div>
-        <div class="actions">
+        <div class="header-controls">
+          <nav class="view-nav" aria-label="Secciones principales">
+            <button class="active" type="button" data-view="dashboard">Panel</button>
+            <button type="button" data-view="records">Registros</button>
+          </nav>
           <div class="account-box">
             <span id="accountName">Usuario</span>
             <button id="logout" type="button">Salir</button>
           </div>
-          <button id="seed">Ejemplo</button>
-          <button id="exportCsv">Exportar CSV</button>
-          <label class="file-button">Importar CSV
-            <input id="importCsv" type="file" accept=".csv,text/csv" />
-          </label>
-          <button id="exportBackup">Respaldo</button>
-          <label class="file-button">Restaurar
-            <input id="importBackup" type="file" accept=".json,application/json" />
-          </label>
-          <button id="reset">Limpiar</button>
         </div>
       </header>
 
@@ -721,10 +808,16 @@
           <div class="metric ok">S/ <span id="monthlyPaid">0.00</span></div>
           <div class="sub" id="monthlyPending">Restante S/ 0.00</div>
         </div>
+
+        <div class="panel">
+          <div class="label">Pagado acumulado</div>
+          <div class="metric blue">S/ <span id="allTimePaid">0.00</span></div>
+          <div class="sub">Todos tus pagos registrados</div>
+        </div>
       </div>
     </section>
 
-    <section class="grid" aria-live="polite">
+    <section class="grid" id="dashboardView" aria-live="polite">
 
       <div class="panel span-12" id="loanListPanel">
         <div class="section-title">
@@ -863,38 +956,58 @@
         <div class="tiny form-hidden" id="cardHelp">Agrega la tarjeta una vez. En su fila cambias soles y dólares de cada mes.</div>
       </div>
 
-      <div class="panel span-12">
+    </section>
+
+    <section class="hidden" id="recordsView" aria-live="polite">
+      <div class="view-heading">
+        <div>
+          <h2>Registros de pagos</h2>
+          <div class="tiny">Consulta todo lo pagado y administra tus respaldos desde un solo lugar.</div>
+        </div>
+        <button type="button" data-view="dashboard">Volver al panel</button>
+      </div>
+
+      <div class="records-summary">
+        <div class="panel">
+          <div class="label">Total registrado</div>
+          <div class="metric ok">S/ <span id="historyPaidTotal">0.00</span></div>
+        </div>
+        <div class="panel">
+          <div class="label">Operaciones</div>
+          <div class="metric" id="historyCount">0</div>
+        </div>
+        <div class="panel">
+          <div class="label">Meses con actividad</div>
+          <div class="metric" id="historyMonths">0</div>
+        </div>
+      </div>
+
+      <div class="panel">
         <div class="section-title">
-          <h2>Historial de pagos</h2>
-          <div class="row-actions">
-            <button id="clearCurrentMonth" type="button">Desmarcar mes actual</button>
+          <div class="section-heading">
+            <h2>Historial completo</h2>
+            <div class="tiny">Cada pago parcial aparece como una operación independiente.</div>
           </div>
+          <button id="clearCurrentMonth" type="button">Desmarcar mes actual</button>
         </div>
         <div class="history-table" id="history"></div>
       </div>
 
-      <div class="panel span-12">
+      <div class="panel" style="margin-top:14px">
         <div class="section-title">
-          <h2>Datos y Numbers</h2>
-          <div class="row-actions">
-            <button id="downloadTemplate">Plantilla CSV</button>
+          <div class="section-heading">
+            <h2>Herramientas de datos</h2>
+            <div class="tiny" id="prototypeStatus">Comprobando la conexión de almacenamiento.</div>
           </div>
         </div>
-        <div class="data-box">
-          <div>Numbers puede ser tu base principal: editas la tabla, exportas CSV y la importas aquí.</div>
-          <div>Columnas: <code>tipo</code>, <code>nombre</code>, <code>tarjeta_vinculada</code>, <code>monto</code>, <code>pagado</code>, <code>pago_mensual</code>, <code>cuotas</code>, <code>fecha_inicio</code>.</div>
-          <div>En préstamos, <code>tarjeta_vinculada</code> debe coincidir con el nombre de una tarjeta. Al pagar esa tarjeta, sus cuotas vinculadas se reflejan como pagadas.</div>
-        </div>
-      </div>
-
-      <div class="panel span-12">
-        <div class="section-title">
-          <h2>Prototipo de app</h2>
-        </div>
-        <div class="data-box">
-          <div><strong>GitHub Pages:</strong> publica la aplicación para que pueda abrirse desde cualquier computadora.</div>
-          <div id="prototypeStatus"><strong>Datos:</strong> comprobando la conexión con Supabase.</div>
-          <div><strong>Privacidad:</strong> cada cuenta solo puede consultar y modificar su propio panel.</div>
+        <div class="records-toolbar">
+          <button id="exportCsv">Exportar CSV</button>
+          <label class="file-button">Importar CSV<input id="importCsv" type="file" accept=".csv,text/csv" /></label>
+          <button id="downloadTemplate">Plantilla CSV</button>
+          <button id="exportBackup">Crear respaldo</button>
+          <label class="file-button">Restaurar respaldo<input id="importBackup" type="file" accept=".json,application/json" /></label>
+          <button id="seed">Cargar ejemplo</button>
+          <button class="danger danger-zone" id="reset">Limpiar mis datos</button>
         </div>
       </div>
     </section>
@@ -956,6 +1069,12 @@
       monthlyTotal: document.querySelector("#monthlyTotal"),
       monthlyPaid: document.querySelector("#monthlyPaid"),
       monthlyPending: document.querySelector("#monthlyPending"),
+      allTimePaid: document.querySelector("#allTimePaid"),
+      dashboardView: document.querySelector("#dashboardView"),
+      recordsView: document.querySelector("#recordsView"),
+      historyPaidTotal: document.querySelector("#historyPaidTotal"),
+      historyCount: document.querySelector("#historyCount"),
+      historyMonths: document.querySelector("#historyMonths"),
       loansPrincipalKpi: document.querySelector("#loansPrincipalKpi"),
       loansExtraKpi: document.querySelector("#loansExtraKpi"),
       loansMonthlyKpi: document.querySelector("#loansMonthlyKpi"),
@@ -1060,9 +1179,28 @@
     }
 
     function readSessionUser() {
-      const email = normalizeEmail(localStorage.getItem(sessionKey));
-      if (!email) return null;
-      return readUsers().find(user => normalizeEmail(user.email) === email) || null;
+      const sessionEmail = normalizeEmail(localStorage.getItem(sessionKey));
+      if (!sessionEmail) return null;
+      const savedUser = readUsers().find(user => normalizeEmail(user.email) === sessionEmail);
+      if (savedUser) return savedUser;
+
+      const userPrefix = `${storageKey}:user:`;
+      const recoveredEmail = Object.keys(localStorage)
+        .filter(key => key.startsWith(userPrefix))
+        .map(key => normalizeEmail(key.slice(userPrefix.length)))
+        .find(email => {
+          return email === sessionEmail ||
+            email.startsWith(`${sessionEmail}.`) ||
+            sessionEmail.startsWith(`${email}.`);
+        });
+
+      if (!recoveredEmail) return null;
+      localStorage.setItem(sessionKey, recoveredEmail);
+      return {
+        name: recoveredEmail.startsWith("fabriciotj15@") ? "Fabricio Raúl" : recoveredEmail.split("@")[0],
+        email: recoveredEmail,
+        recovered: true
+      };
     }
 
     function setAuthMode(mode) {
@@ -1513,6 +1651,18 @@
         .reduce((sum, payment) => sum + paymentTotalPen(payment), 0);
     }
 
+    function allTimePaidTotal() {
+      return state.payments
+        .filter(payment => payment.kind === "card")
+        .reduce((sum, payment) => sum + paymentTotalPen(payment), 0);
+    }
+
+    function paymentEntryCount() {
+      return state.payments.reduce((count, payment) => {
+        return count + (payment.entries?.length || (paymentTotalPen(payment) > 0 ? 1 : 0));
+      }, 0);
+    }
+
     function monthDueTotal() {
       const month = currentMonthKey();
       return state.cards.reduce((sum, card) => {
@@ -1567,6 +1717,7 @@
       const month = currentMonthKey();
       const totalDue = monthDueTotal();
       const totalPaid = monthPaidTotal(month);
+      const historicalPaid = allTimePaidTotal();
       const loanTotals = loanKpis();
       els.today.textContent = dateFmt.format(new Date());
       els.monthLabel.textContent = monthFmt.format(new Date());
@@ -1576,6 +1727,10 @@
       els.monthlyTotal.textContent = money.format(totalDue);
       els.monthlyPaid.textContent = money.format(totalPaid);
       els.monthlyPending.textContent = `Restante S/ ${money.format(totalDue)}`;
+      els.allTimePaid.textContent = money.format(historicalPaid);
+      els.historyPaidTotal.textContent = money.format(historicalPaid);
+      els.historyCount.textContent = paymentEntryCount();
+      els.historyMonths.textContent = new Set(state.payments.map(payment => payment.month)).size;
       els.loansPrincipalKpi.textContent = money.format(loanTotals.principal);
       els.loansExtraKpi.textContent = money.format(loanTotals.extra);
       els.loansMonthlyKpi.textContent = money.format(loanTotals.monthly);
@@ -1682,8 +1837,8 @@
           const currentMonthPayment = itemPayment(card.id, currentMonthKey());
           const activePayment = itemPayment(card.id, activeMonth);
           const due = paymentDayLabel(card.dueDay);
-          const valuePen = activePayment ? activePayment.billAmount : (isFuture ? 0 : card.monthly);
-          const valueUsd = activePayment ? activePayment.billAmountUsd : (isFuture ? 0 : card.monthlyUsd);
+          const valuePen = toNumber(activePayment ? activePayment.billAmount : (isFuture ? 0 : card.monthly));
+          const valueUsd = toNumber(activePayment ? activePayment.billAmountUsd : (isFuture ? 0 : card.monthlyUsd));
           const currentTotal = currentMonthPayment ? paymentRemainingPen(currentMonthPayment, card.monthly) : cardBaseTotalPen(card);
           const currentUsd = currentMonthPayment ? toNumber(currentMonthPayment.billAmountUsd) : toNumber(card.monthlyUsd);
           const paidTotal = activePayment ? paymentTotalPen(activePayment) : 0;
@@ -2055,6 +2210,19 @@
       state.rate = toNumber(event.target.value);
       saveState();
       render();
+    });
+
+    document.addEventListener("click", event => {
+      const viewButton = event.target.closest("[data-view]");
+      if (!viewButton) return;
+      const showRecords = viewButton.dataset.view === "records";
+      els.dashboardView.classList.toggle("hidden", showRecords);
+      els.recordsView.classList.toggle("hidden", !showRecords);
+      els.appShell.classList.toggle("records-mode", showRecords);
+      document.querySelectorAll(".view-nav [data-view]").forEach(button => {
+        button.classList.toggle("active", button.dataset.view === viewButton.dataset.view);
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
     els.showLogin.addEventListener("click", () => setAuthMode("login"));
