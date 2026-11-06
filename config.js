@@ -1,4 +1,4 @@
 window.PAGOS_APP_CONFIG = {
-  supabaseUrl: "TU-PROYECTO.supabase.co",
-  supabaseAnonKey: "TU-CLAVE-ANON-PUBLICA"
+  supabaseUrl: "https://hnzkaxgptvwcuwsmlnuj.supabase.co",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhuemtheGdwdHZ3Y3V3c21sbnVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNjQ2MzksImV4cCI6MjA5OTY0MDYzOX0.ivdra2ajX8LIcagVbfK5tPGqUtNTY5VidANQY4M16qs"
 };
