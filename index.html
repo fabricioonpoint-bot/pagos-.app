@@ -320,7 +320,7 @@
     <form class="auth-form hidden" id="signupForm">
       <label class="f">Nombre<input id="signupName" autocomplete="name" /></label>
       <label class="f">Correo<input id="signupEmail" type="email" autocomplete="email" /></label>
-      <label class="f">Clave<input id="signupPassword" type="password" autocomplete="new-password" placeholder="Mínimo 4 caracteres" /></label>
+      <label class="f">Clave<input id="signupPassword" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" /></label>
       <button class="btn primary" type="submit">Crear cuenta</button>
     </form>
     <div class="auth-msg" id="authMessage"></div>
@@ -509,7 +509,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="config.js"></script>
+<script src="config.js?v=nube-1"></script>
 <script>
 /* =====================================================================
    Almacenamiento: mismas claves que la versión anterior, para que al
@@ -1417,10 +1417,21 @@ $("#restorePrev").addEventListener("click", () => {
 $("#reset").addEventListener("click", () => { if (!confirm("¿Borrar todos los datos de este usuario? Crea un respaldo antes.")) return; state = normalizeState(defaultState); saveState(); render(); });
 
 /* ------------------------- auth ------------------------- */
+function authError(error) {
+  const code = (error && (error.code || error.error_code)) || ""; const m = String((error && error.message) || "").toLowerCase();
+  if (code === "invalid_credentials" || m.includes("invalid login")) return "Correo o clave incorrectos. Si es tu primera vez con la nube, toca «Crear usuario» arriba.";
+  if (code === "email_not_confirmed" || m.includes("not confirmed")) return "Falta confirmar tu correo. Abre el mensaje de Supabase (revisa también Spam) y toca el enlace.";
+  if (code === "user_already_exists" || m.includes("already registered")) return "Ese correo ya tiene cuenta. Inicia sesión con tu clave.";
+  if (code === "over_email_send_rate_limit" || m.includes("rate limit")) return "Se enviaron demasiados correos. Espera unos minutos y vuelve a intentar.";
+  if (code === "weak_password" || m.includes("password should")) return "La clave es muy débil: usa al menos 6 caracteres.";
+  if (m.includes("invalid") && m.includes("email")) return "Ese correo no es válido. Revisa que esté bien escrito.";
+  if (m.includes("failed to fetch") || m.includes("network")) return "No hay conexión con la nube. Revisa tu internet o desactiva el bloqueador de anuncios para este sitio.";
+  return "No se pudo completar: " + ((error && error.message) || "error desconocido");
+}
 function setAuthMode(signup) {
   $("#showLogin").classList.toggle("active", !signup); $("#showSignup").classList.toggle("active", signup);
   $("#loginForm").classList.toggle("hidden", signup); $("#signupForm").classList.toggle("hidden", !signup);
-  $("#authMessage").textContent = cloudMode ? (signup ? "Tus datos quedarán guardados en la nube." : "Ingresa para abrir tu panel en la nube.") : (signup ? "Cuenta local: los datos quedan en este navegador." : "Ingresa con un usuario creado en este navegador.");
+  $("#authMessage").textContent = cloudMode ? (signup ? "Crea tu cuenta en la nube con tu correo real y una clave de mínimo 6 caracteres. Te llegará un correo para confirmarla." : "Ingresa con tu cuenta de la nube. ¿Primera vez? Toca «Crear usuario».") : (signup ? "Cuenta local: los datos quedan en este navegador." : "Ingresa con un usuario creado en este navegador.");
 }
 function refreshAuthView() {
   const on = Boolean(currentUser);
@@ -1435,9 +1446,12 @@ $("#signupForm").addEventListener("submit", async ev => {
   const min = cloudMode ? 6 : 4;
   if (!name || !email || pw.length < min) { $("#authMessage").textContent = `Completa nombre, correo y una clave de mínimo ${min} caracteres.`; return; }
   if (cloudMode) {
-    const { data, error } = await supabaseClient.auth.signUp({ email, password: pw, options: { data: { name } } });
-    if (error) { $("#authMessage").textContent = error.message; return; }
-    if (!data.session) { setAuthMode(false); $("#authMessage").textContent = "Cuenta creada. Confirma tu correo e inicia sesión."; return; }
+    $("#authMessage").textContent = "Creando tu cuenta…";
+    let data, error;
+    try { ({ data, error } = await supabaseClient.auth.signUp({ email, password: pw, options: { data: { name }, emailRedirectTo: location.origin + location.pathname } })); } catch (e) { error = e; }
+    if (error) { $("#authMessage").textContent = authError(error); return; }
+    if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) { setAuthMode(false); $("#loginEmail").value = email; $("#authMessage").textContent = "Ese correo ya tiene cuenta. Inicia sesión con tu clave."; return; }
+    if (!data.session) { setAuthMode(false); $("#loginEmail").value = email; $("#authMessage").textContent = `Cuenta creada. Te enviamos un correo a ${email}: ábrelo (revisa Spam), toca el enlace para confirmar y luego inicia sesión aquí.`; return; }
     currentUser = cloudUser(data.user); await loadCloudState(); refreshAuthView(); refreshExchangeRate(); return;
   }
   const users = readUsers();
@@ -1451,8 +1465,10 @@ $("#loginForm").addEventListener("submit", async ev => {
   ev.preventDefault();
   const email = normalizeEmail($("#loginEmail").value), pw = $("#loginPassword").value;
   if (cloudMode) {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
-    if (error) { $("#authMessage").textContent = "Correo o clave incorrectos."; return; }
+    $("#authMessage").textContent = "Entrando…";
+    let data, error;
+    try { ({ data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pw })); } catch (e) { error = e; }
+    if (error) { $("#authMessage").textContent = authError(error); return; }
     currentUser = cloudUser(data.user); await loadCloudState(); refreshAuthView(); refreshExchangeRate(); return;
   }
   const user = readUsers().find(u => normalizeEmail(u.email) === email && u.password === pw);
