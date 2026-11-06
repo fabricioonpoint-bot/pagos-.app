@@ -188,6 +188,30 @@
   .breakdown .good strong { color: var(--good); }
   .incl { font-size: 12.5px; color: var(--text-2); display: flex; flex-wrap: wrap; gap: 6px; }
 
+  /* Registro mensual: dos tarjetas por fila, compactas */
+  #monthCards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  #monthCards .mcard { padding: 12px 13px; gap: 9px; }
+  #monthCards .mcard-head strong { font-size: 15px !important; }
+  #monthCards .mcard-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #monthCards .mcard-fields > :last-child { grid-column: auto; }
+  #monthCards .mcard-fields label.f { font-size: 11.5px; gap: 3px; }
+  #monthCards .mcard-fields input { min-height: 34px; padding: 6px 8px; font-size: 14px; }
+  #monthCards .breakdown { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  #monthCards .breakdown div { padding: 6px 8px; font-size: 11px; }
+  #monthCards .breakdown strong { font-size: 13.5px; }
+  #monthCards .breakdown > :nth-child(5) { grid-column: 1 / -1; }
+  #monthCards .breakdown > :nth-child(5) strong span { display: inline !important; margin-right: 10px; }
+  #monthCards .breakdown > :nth-child(4) { grid-column: auto; }
+  #monthCards .incl { font-size: 11.5px; gap: 4px; }
+  #monthCards .incl .chip { font-size: 11px; padding: 2px 7px; }
+  #monthCards .btn.sm { min-height: 30px; padding: 4px 9px; font-size: 12.5px; }
+  @media (max-width: 760px) {
+    #monthCards { grid-template-columns: 1fr; gap: 10px; }
+    #monthCards .mcard { padding: 11px 12px; }
+    #monthCards .breakdown strong { font-size: 12.5px; }
+    #monthCards .breakdown div { padding: 5px 6px; font-size: 10.5px; }
+  }
+
   /* ---------- Rectify ---------- */
   .banner { border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); background: var(--warn-soft); border-radius: 13px; padding: 13px 15px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
   .banner strong { color: var(--warn); }
@@ -1019,11 +1043,11 @@ function renderMonth() {
       </div>
       ${loans.length ? `<div class="incl">${r.bill.unregistered ? "Cuotas que se cobrarán este mes:" : "Incluye cuotas:"} ${loans.map(l => `<span class="chip">${esc(l.name)} · S/ ${fmt(l.monthly)}</span>`).join("")}${r.bill.unregistered ? "" : `<span class="chip">Compras del mes · S/ ${fmt(Math.max(0, r.bill.total - cuotas))}</span>`}</div>` : ""}
       <div class="breakdown">
-        <div class="${r.debtPrev > .005 ? "bad" : ""}">${r.included ? "Atrasado (incluido)" : "Arrastre"}<strong class="num">S/ ${fmt(r.debtPrev)}</strong></div>
+        <div class="${r.debtPrev > .005 ? "bad" : ""}">${r.included ? "Atrasado" : "Arrastre"}<strong class="num">S/ ${fmt(r.debtPrev)}</strong></div>
         <div>Total del mes<strong class="num">S/ ${fmt(r.due)}</strong></div>
         <div class="good">Pagado<strong class="num">S/ ${fmt(r.paid)}</strong></div>
         <div class="${r.balance > .005 ? "bad" : "good"}">Saldo<strong class="num">S/ ${fmt(Math.max(0, r.balance))}</strong></div>
-        <div>Operaciones<strong>${entries.length ? entries.map(e => `<span class="num" style="font-size:12.5px;font-weight:600;display:block">${dayFmt.format(new Date(e.paidAt))} · S/ ${fmt(penOf(e.amount, e.amountUsd))}</span>`).join("") : "—"}</strong></div>
+        ${entries.length ? `<div>Pagos registrados<strong>${entries.map(e => `<span class="num" style="font-size:12.5px;font-weight:600;display:block">${dayFmt.format(new Date(e.paidAt))} · S/ ${fmt(penOf(e.amount, e.amountUsd))}</span>`).join("")}</strong></div>` : ""}
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn sm primary" type="button" data-act="pay" data-id="${card.id}" data-month="${m}">Registrar pago</button>
