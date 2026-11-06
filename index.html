@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0e1213" />
+<meta name="theme-color" content="#0f1212" />
 <title>Pagos App</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,47 +11,39 @@
 <style>
   :root {
     color-scheme: dark;
-    --bg: #0e1213;
-    --surface: #161c1d;
-    --surface-2: #1d2526;
-    --field: #0f1415;
-    --line: #2a3436;
-    --line-soft: #222b2c;
-    --text: #f2f5f3;
-    --text-2: #b9c3be;
-    --muted: #8a9690;
-    --accent: #5fd9a0;
+    --bg: #0f1212;
+    --surface: #181d1e;
+    --surface-2: #202728;
+    --field: #111516;
+    --line: #313b3d;
+    --line-soft: #262f31;
+    --text: #f3f6f3;
+    --text-2: #c3ccc7;
+    --muted: #a8b3ad;
+    --accent: #66dfa3;
     --accent-ink: #0b2a1d;
-    --accent-soft: rgba(95, 217, 160, .14);
-    --good: #5fd9a0;
-    --warn: #f2c14e;
-    --bad: #ff7a7a;
-    --bad-soft: rgba(255, 122, 122, .12);
-    --warn-soft: rgba(242, 193, 78, .13);
-    --info: #79c3ff;
+    --accent-soft: rgba(102, 223, 163, .14);
+    --good: #66dfa3;
+    --warn: #f4c95d;
+    --bad: #ff7f7f;
+    --bad-soft: rgba(255, 127, 127, .12);
+    --warn-soft: rgba(244, 201, 93, .13);
+    --info: #78c7ff;
     --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
     --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
     --radius: 14px;
     --shadow: 0 18px 50px rgba(0, 0, 0, .35);
     font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  @media (prefers-color-scheme: light) {
-    :root:not([data-theme="dark"]) {
-      color-scheme: light;
-      --bg: #f4f6f5; --surface: #ffffff; --surface-2: #f1f4f3; --field: #ffffff;
-      --line: #dbe2df; --line-soft: #e8edeb; --text: #0f1716; --text-2: #3f4b47; --muted: #6b7773;
-      --accent: #0f8a5a; --accent-ink: #ffffff; --accent-soft: rgba(15, 138, 90, .1);
-      --good: #0f8a5a; --warn: #a86b00; --bad: #c9302c; --bad-soft: rgba(201, 48, 44, .08); --warn-soft: rgba(168, 107, 0, .1);
-      --info: #1f6fd1;
-      --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
-      --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
-      --shadow: 0 12px 34px rgba(20, 40, 35, .08);
-    }
-  }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; min-height: 100vh; background: var(--bg); color: var(--text);
+    margin: 0; min-height: 100vh; color: var(--text);
+    background:
+      linear-gradient(135deg, rgba(102, 223, 163, .07), transparent 34%),
+      linear-gradient(315deg, rgba(120, 199, 255, .08), transparent 40%),
+      var(--bg);
+    background-attachment: fixed;
     font-size: 15px; line-height: 1.45;
   }
   .num { font-variant-numeric: tabular-nums; }
@@ -60,7 +52,9 @@
 
   /* ---------- Layout ---------- */
   .app { width: min(1240px, 100%); margin: 0 auto; padding: 20px 16px 110px; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .topbar { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; padding: 18px 20px; border: 1px solid rgba(255, 255, 255, .08); border-radius: var(--radius); background: linear-gradient(120deg, rgba(102, 223, 163, .16), transparent 42%), linear-gradient(315deg, rgba(120, 199, 255, .14), transparent 42%), #151b1c; box-shadow: var(--shadow); }
+  .topbar::after { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .045) 1px, transparent 1px); background-size: 42px 42px; mask-image: linear-gradient(90deg, transparent, #000 35%, #000 80%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 35%, #000 80%, transparent); }
+  .topbar > * { position: relative; z-index: 1; }
   .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .logo { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 800; flex: none; }
   .brand h1 { margin: 0; font-size: 19px; letter-spacing: -.01em; }
